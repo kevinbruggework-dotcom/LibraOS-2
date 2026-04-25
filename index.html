@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LibraOS">
+<meta name="theme-color" content="#0f0f11">
+<link rel="manifest" href="manifest.json">
+<title>LibraOS-4677</title>
+<style>
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ROOT & RESET
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+:root{
+  --bg:#0f0f11;
+  --s1:#17171a;--s2:#1e1e22;--s3:#26262b;--s4:#2e2e35;
+  --b1:#252529;--b2:#333339;--b3:#44444d;
+  --t1:#f0f0f3;--t2:#8c8ca0;--t3:#55556a;--t4:#33333d;
+  --acc:#2b7de9;--acc2:#1f6ad4;--acc3:rgba(43,125,233,.16);
+  --grn:#34c759;--red:#ff3b30;--ylw:#ffcc00;--prp:#8b6ef7;
+  --own:#1a4a8a;--other:#1e1e22;
+  --nav-h:56px;
+  --st:env(safe-area-inset-top,0px);
+  --sb:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;height:100dvh;background:var(--bg);color:var(--t1);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;
+  font-size:15px;line-height:1.4;overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   APP SHELL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
+#main-area{flex:1;position:relative;overflow:hidden}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SCREENS (pages within main-area)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.screen{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg);overflow:hidden}
+.screen.on{display:flex}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BOTTOM NAV
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#bottom-nav{
+  display:flex;background:var(--s1);border-top:1px solid var(--b1);
+  padding:0 0 var(--sb);height:calc(var(--nav-h) + var(--sb));flex-shrink:0;
+}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;cursor:pointer;color:var(--t3);transition:color .15s;padding-top:6px;
+  font-size:10px;letter-spacing:.02em;border:none;background:none;font-family:inherit}
+.nav-tab .ni{font-size:22px;line-height:1}
+.nav-tab.active{color:var(--acc)}
+.nav-badge{position:relative}
+.nav-badge::after{content:attr(data-n);position:absolute;top:-4px;right:-8px;
+  min-width:16px;height:16px;padding:0 4px;background:var(--red);border-radius:8px;
+  font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;
+  display:none}
+.nav-badge[data-n]:not([data-n="0"])::after{display:flex}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TOP BAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.topbar{
+  display:flex;align-items:center;gap:8px;
+  padding:calc(var(--st) + 10px) 14px 10px;
+  background:var(--s1);border-bottom:1px solid var(--b1);flex-shrink:0;min-height:52px
+}
+.tb-title{font-size:18px;font-weight:700;letter-spacing:-.3px;flex:1}
+.tb-sub{font-size:11px;color:var(--t3);margin-top:1px}
+.ib{width:36px;height:36px;border:none;background:none;color:var(--t2);
+  font-size:22px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;cursor:pointer;transition:background .12s;flex-shrink:0}
+.ib:active{background:var(--s3)}
+.ib.back{font-size:28px;margin-left:-6px}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   COMMON ELEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.fi{width:100%;padding:12px 14px;background:var(--s2);border:1.5px solid var(--b1);
+  border-radius:10px;color:var(--t1);font-size:15px;outline:none;font-family:inherit;
+  transition:border-color .15s}
+.fi:focus{border-color:var(--acc)}
+.fi::placeholder{color:var(--t3)}
+.fi.mono{font-family:monospace;font-size:13px;color:var(--acc)}
+.lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);
+  margin-bottom:7px;display:block}
+.field{margin-bottom:16px}
+.primary{width:100%;padding:14px;background:var(--acc);border:none;border-radius:10px;
+  color:#fff;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:background .12s,transform .1s;margin-top:4px}
+.primary:active{background:var(--acc2);transform:scale(.98)}
+.ghost{width:100%;padding:13px;background:var(--s2);border:1.5px solid var(--b2);
+  border-radius:10px;color:var(--t2);font-size:15px;font-weight:500;
+  cursor:pointer;font-family:inherit;transition:all .12s;text-align:left;display:block;margin-bottom:8px}
+.ghost:active{background:var(--s3);color:var(--t1)}
+.ghost.blue{color:var(--acc);background:var(--acc3);border-color:rgba(43,125,233,.3)}
+.ghost.red{color:var(--red);background:rgba(255,59,48,.08);border-color:rgba(255,59,48,.25)}
+.divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--t3);
+  font-size:11px;letter-spacing:.08em}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--b1)}
+.alias-row{display:flex;gap:8px}
+.regen{width:46px;height:46px;flex-shrink:0;background:var(--s2);border:1.5px solid var(--b1);
+  border-radius:10px;color:var(--t2);font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .12s}
+.regen:active{color:var(--t1)}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{display:none}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
+  border-radius:20px;font-size:12px;font-weight:500}
+.pill.green{background:rgba(52,199,89,.12);color:var(--grn)}
+.pill.acc{background:var(--acc3);color:var(--acc)}
+.section-pad{padding:20px 16px 0}
+.section-title{font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--t3);margin-bottom:10px}
+.card{background:var(--s1);border-radius:12px;border:1px solid var(--b1);overflow:hidden;margin-bottom:16px}
+.card-row{display:flex;align-items:center;gap:12px;padding:13px 14px;
+  border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s}
+.card-row:last-child{border-bottom:none}
+.card-row:active{background:var(--s2)}
+.card-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.card-info{flex:1;min-width:0}
+.card-label{font-size:15px;color:var(--t1)}
+.card-val{font-size:12px;color:var(--t3);margin-top:1px;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-arrow{color:var(--t3);font-size:20px}
+.av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.av.sm{width:36px;height:36px;font-size:14px}
+.av.lg{width:60px;height:60px;font-size:24px}
+.av-b{background:rgba(43,125,233,.18);color:#5898f5}
+.av-g{background:rgba(52,199,89,.14);color:#34c759}
+.av-o{background:rgba(255,149,0,.14);color:#ff9500}
+.av-p{background:rgba(139,110,247,.16);color:#8b6ef7}
+.av-r{background:rgba(255,59,48,.14);color:#ff3b30}
+.av-t{background:rgba(90,200,250,.14);color:#5ac8fa}
+.av-grp{background:rgba(139,110,247,.18);color:#8b6ef7}
+.copy-btn{padding:7px 12px;background:var(--s3);border:1px solid var(--b2);
+  border-radius:7px;color:var(--t2);font-size:12px;cursor:pointer;
+  white-space:nowrap;font-family:inherit;transition:all .12s;flex-shrink:0}
+.copy-btn:active{color:var(--t1)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ONBOARDING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#s-onboard{align-items:center;justify-content:center;padding:28px 20px;overflow-y:auto}
+.ob-card{width:100%;max-width:400px}
+.ob-logo{display:flex;align-items:center;gap:14px;margin-bottom:36px}
+.ob-icon{width:60px;height:60px;background:var(--acc);border-radius:18px;
+  display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;
+  box-shadow:0 8px 24px rgba(43,125,233,.35)}
+.ob-name{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.ob-tag{font-size:13px;color:var(--t3);margin-top:3px}
+.id-box{padding:12px 14px;background:var(--s2);border:1.5px solid var(--b1);
+  border-radius:10px;display:flex;align-items:center;gap:10px}
+.id-val{font-family:monospace;font-size:12px;color:var(--acc);flex:1;word-break:break-all;letter-spacing:.02em}
+.ob-hint{font-size:12px;color:var(--t3);margin-top:7px;line-height:1.6}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CHAT LIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#s-chats{background:var(--bg)}
+.search-bar{padding:10px 12px;background:var(--s1);border-bottom:1px solid var(--b1);flex-shrink:0}
+.search-inp{width:100%;padding:9px 14px;background:var(--s2);border:none;
+  border-radius:10px;color:var(--t1);font-size:15px;outline:none;font-family:inherit}
+.search-inp::placeholder{color:var(--t3)}
+.chat-row{display:flex;align-items:center;gap:12px;padding:11px 14px;
+  cursor:pointer;transition:background .1s;border-bottom:1px solid var(--b1);
+  position:relative;overflow:hidden}
+.chat-row:active{background:var(--s1)}
+.cr-info{flex:1;min-width:0}
+.cr-name{font-size:16px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-prev{font-size:13px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.cr-time{font-size:12px;color:var(--t3)}
+.unread{min-width:20px;height:20px;padding:0 5px;background:var(--acc);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;gap:12px;color:var(--t3);font-size:14px;text-align:center;padding:40px 24px}
+.empty-ico{font-size:56px;opacity:.2}
+.fab{position:absolute;bottom:calc(var(--sb) + 16px);right:16px;
+  width:56px;height:56px;background:var(--acc);border:none;border-radius:50%;
+  color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;box-shadow:0 4px 20px rgba(43,125,233,.4);transition:transform .12s;z-index:5}
+.fab:active{transform:scale(.9)}
+/* swipe delete */
+.chat-row .del-btn{position:absolute;right:0;top:0;bottom:0;width:80px;
+  background:var(--red);color:#fff;font-size:13px;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;transform:translateX(100%);transition:transform .2s}
+.chat-row.swiped .del-btn{transform:translateX(0)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CONTACTS TAB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#s-contacts{background:var(--bg)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CHAT VIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#s-chat,#s-group{background:var(--bg)}
+.msgs{flex:1;overflow-y:auto;padding:10px 10px 6px;
+  display:flex;flex-direction:column;gap:1px;-webkit-overflow-scrolling:touch}
+.msgs::-webkit-scrollbar{display:none}
+.mr{display:flex;flex-direction:column;margin-bottom:4px}
+.mr.own{align-items:flex-end}
+.mr.other{align-items:flex-start}
+.mr.sys{align-items:center;margin:8px 0}
+.sender-lbl{font-size:11px;color:var(--t3);margin-bottom:3px;padding:0 4px}
+.bubble{max-width:76%;padding:9px 13px;border-radius:18px;font-size:15px;
+  line-height:1.45;word-break:break-word;position:relative}
+.mr.own .bubble{background:var(--own);color:#fff;border-bottom-right-radius:4px}
+.mr.other .bubble{background:var(--other);color:var(--t1);border:1px solid var(--b1);border-bottom-left-radius:4px}
+.mr.sys .bubble{background:none;color:var(--t3);font-size:11px;text-align:center;
+  padding:2px 8px;max-width:100%;border:none}
+.bubble.img-b{padding:0;overflow:hidden;border:none;background:transparent}
+.bubble.img-b img{width:100%;max-width:240px;border-radius:18px;display:block;cursor:pointer}
+.bubble.file-b{display:flex;align-items:center;gap:10px;min-width:160px;cursor:pointer}
+.file-ico{width:36px;height:36px;background:rgba(255,255,255,.1);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.file-det{flex:1;min-width:0}
+.file-nm{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-sz{font-size:11px;opacity:.6;margin-top:1px}
+.msg-meta{display:flex;align-items:center;gap:4px;margin-top:3px;padding:0 3px}
+.msg-meta.r{justify-content:flex-end}
+.msg-meta.l{justify-content:flex-start}
+.msg-time{font-size:10px;color:var(--t3)}
+.msg-tick{font-size:10px;color:var(--t3)}
+.msg-tick.sent{color:var(--t3)}
+.msg-tick.read{color:var(--acc)}
+.tpill{font-size:10px;color:var(--red);padding:1px 5px;
+  background:rgba(255,59,48,.12);border-radius:4px}
+.tpill.urg{animation:blk 1s infinite}
+@keyframes blk{0%,100%{opacity:1}50%{opacity:.15}}
+.typing-bar{height:28px;padding:0 14px;display:flex;align-items:center;
+  gap:8px;flex-shrink:0;opacity:0;transition:opacity .2s;pointer-events:none}
+.typing-bar.show{opacity:1}
+.tdots span{display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:var(--t3);animation:td 1.4s infinite;margin:0 1px}
+.tdots span:nth-child(2){animation-delay:.2s}
+.tdots span:nth-child(3){animation-delay:.4s}
+@keyframes td{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.typing-who{font-size:12px;color:var(--t3)}
+.input-bar{padding:8px 10px calc(var(--sb) + 8px);background:var(--s1);
+  border-top:1px solid var(--b1);display:flex;align-items:flex-end;gap:8px;flex-shrink:0}
+.msg-ta{flex:1;padding:10px 14px;background:var(--s2);border:1.5px solid var(--b1);
+  border-radius:22px;color:var(--t1);font-size:15px;outline:none;resize:none;
+  min-height:40px;max-height:120px;line-height:1.4;font-family:inherit;transition:border-color .15s}
+.msg-ta:focus{border-color:var(--b2)}
+.msg-ta::placeholder{color:var(--t3)}
+.send-btn{width:40px;height:40px;background:var(--acc);border:none;border-radius:50%;
+  color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;transition:background .12s,transform .1s}
+.send-btn:active{transform:scale(.9)}
+.att-btn{width:36px;height:36px;background:none;border:none;color:var(--t3);
+  font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+/* long-press delete on message */
+.mr.selecting .bubble{opacity:.6;outline:2px solid var(--acc)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PROFILE TAB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#s-profile{overflow-y:auto}
+.profile-header{display:flex;flex-direction:column;align-items:center;
+  padding:calc(var(--st)+24px) 20px 24px;background:var(--s1);border-bottom:1px solid var(--b1)}
+.profile-av{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:32px;font-weight:700;margin-bottom:12px;
+  background:var(--acc3);color:var(--acc);position:relative;cursor:pointer}
+.profile-av-edit{position:absolute;bottom:0;right:0;width:24px;height:24px;
+  background:var(--acc);border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:12px}
+.profile-name{font-size:20px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px}
+.profile-id{font-size:12px;color:var(--t3);font-family:monospace;text-align:center;
+  word-break:break-all;max-width:300px;cursor:pointer}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CALL SCREEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#s-call{align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#0c1e36 0%,#0f0f14 100%)}
+.call-av{width:100px;height:100px;border-radius:50%;font-size:40px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;margin-bottom:20px;
+  box-shadow:0 0 0 10px rgba(255,255,255,.05)}
+.call-name{font-size:26px;font-weight:600;margin-bottom:8px}
+.call-status{font-size:15px;color:var(--t2);margin-bottom:8px}
+.call-timer{font-size:15px;color:var(--grn);display:none;margin-bottom:8px}
+.call-enc{font-size:11px;color:rgba(52,199,89,.7);margin-bottom:44px}
+.call-btns{display:flex;gap:28px}
+.call-btn{width:68px;height:68px;border-radius:50%;border:none;
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  cursor:pointer;transition:transform .12s}
+.call-btn:active{transform:scale(.88)}
+.cb-end{background:var(--red)}
+.cb-mute{background:var(--s3)}
+.cb-spk{background:var(--s3)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BOTTOM SHEETS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.sheet-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);
+  z-index:300;align-items:flex-end;justify-content:center}
+.sheet-bg.open{display:flex;animation:fdi .18s ease}
+@keyframes fdi{from{opacity:0}to{opacity:1}}
+.sheet{background:var(--s1);border-radius:20px 20px 0 0;
+  padding:14px 18px calc(var(--sb)+18px);width:100%;max-width:520px;
+  max-height:90dvh;overflow-y:auto;animation:sup .22s cubic-bezier(.32,1,.23,1)}
+.sheet::-webkit-scrollbar{display:none}
+@keyframes sup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh-handle{width:36px;height:4px;background:var(--b2);border-radius:2px;margin:0 auto 16px}
+.sh-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.sh-sub{font-size:13px;color:var(--t3);margin-bottom:18px;line-height:1.55}
+.token-box{padding:12px 14px;background:var(--s2);border:1.5px solid var(--b1);
+  border-radius:10px;display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.token-val{font-family:monospace;font-size:12px;color:var(--acc);flex:1;word-break:break-all;letter-spacing:.02em}
+.token-exp{font-size:11px;color:var(--t3);margin-bottom:14px}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CONTEXT MENU (long-press)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#ctx-menu{display:none;position:fixed;background:var(--s1);border:1px solid var(--b2);
+  border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:400;
+  overflow:hidden;min-width:160px}
+#ctx-menu.open{display:block;animation:fdi .12s ease}
+.ctx-item{padding:13px 16px;font-size:15px;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--b1)}
+.ctx-item:last-child{border-bottom:none}
+.ctx-item:active{background:var(--s2)}
+.ctx-item.red{color:var(--red)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MISC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.toast{position:fixed;bottom:calc(var(--sb)+70px);left:50%;
+  transform:translateX(-50%) translateY(60px);
+  background:rgba(22,22,28,.96);border:1px solid var(--b2);border-radius:10px;
+  padding:10px 18px;font-size:13px;color:var(--t1);z-index:999;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);
+  z-index:500;align-items:center;justify-content:center;cursor:zoom-out}
+.lightbox.open{display:flex}
+.lightbox img{max-width:96vw;max-height:96dvh;border-radius:10px}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;
+  transition:background .3s}
+.conn-dot.ok{background:var(--grn)}
+.enc-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
+  background:rgba(52,199,89,.1);border:1px solid rgba(52,199,89,.25);border-radius:20px;
+  font-size:10px;color:var(--grn);letter-spacing:.08em}
+.enc-pulse{width:6px;height:6px;border-radius:50%;background:var(--grn);animation:ep 2s infinite}
+@keyframes ep{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="main-area">
+
+    <!-- ══════════════════════════════════ ONBOARDING -->
+    <div id="s-onboard" class="screen on">
+      <div class="ob-card">
+        <div class="ob-logo">
+          <div class="ob-icon">⚖</div>
+          <div>
+            <div class="ob-name">LibraOS-4677</div>
+            <div class="ob-tag">E2E krypterat · Anonymt · P2P</div>
+          </div>
+        </div>
+        <div class="field">
+          <span class="lbl">Ditt alias</span>
+          <div class="alias-row">
+            <input class="fi" id="ob-alias" maxlength="24" placeholder="Slumpmässigt alias...">
+            <button class="regen" onclick="regenAlias('ob-alias')">↺</button>
+          </div>
+          <div class="ob-hint">Slumpmässigt genererat. Kan ändras när som helst i Profil.</div>
+        </div>
+        <div class="field">
+          <span class="lbl">Ditt kontakt-ID</span>
+          <div class="id-box">
+            <span class="id-val" id="ob-myid">—</span>
+            <button class="copy-btn" onclick="copyEl('ob-myid')">Kopiera</button>
+          </div>
+          <div class="ob-hint">Dela detta ID med vem du vill chatta med. Det är ditt permanenta adress.</div>
+        </div>
+        <button class="primary" id="ob-btn">Kom igång →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ CHATS TAB -->
+    <div id="s-chats" class="screen">
+      <div class="topbar">
+        <div class="tb-title" style="flex:1">Chattar</div>
+        <div class="conn-dot" id="conn-dot" title="Anslutningsstatus"></div>
+        <button class="ib" onclick="openSheet('sh-new')">✏</button>
+      </div>
+      <div class="search-bar">
+        <input class="search-inp" id="chats-search" placeholder="🔍  Sök..." oninput="renderChats()">
+      </div>
+      <div class="scroll" id="chats-list" style="position:relative"></div>
+      <button class="fab" onclick="openSheet('sh-new')">+</button>
+    </div>
+
+    <!-- ══════════════════════════════════ CONTACTS TAB -->
+    <div id="s-contacts" class="screen">
+      <div class="topbar">
+        <div class="tb-title" style="flex:1">Kontakter</div>
+        <button class="ib" onclick="openSheet('sh-add-contact')">+</button>
+      </div>
+      <div class="search-bar">
+        <input class="search-inp" id="contacts-search" placeholder="🔍  Sök kontakter..." oninput="renderContacts()">
+      </div>
+      <div class="scroll" id="contacts-list"></div>
+    </div>
+
+    <!-- ══════════════════════════════════ PROFILE TAB -->
+    <div id="s-profile" class="screen">
+      <div class="profile-header">
+        <div class="profile-av" id="prof-av" onclick="openSheet('sh-rename')">
+          <span id="prof-av-letter">?</span>
+          <div class="profile-av-edit">✏</div>
+        </div>
+        <div class="profile-name" id="prof-name">—</div>
+        <div class="profile-id" id="prof-id" onclick="copyMyId()">—</div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <div class="enc-badge"><div class="enc-pulse"></div>AES-256-GCM E2E</div>
+        </div>
+      </div>
+      <div class="section-pad">
+        <div class="section-title">Konto</div>
+        <div class="card">
+          <div class="card-row" onclick="openSheet('sh-rename')">
+            <div class="card-ico" style="background:var(--acc3);color:var(--acc)">✏</div>
+            <div class="card-info"><div class="card-label">Byt alias</div></div>
+            <div class="card-arrow">›</div>
+          </div>
+          <div class="card-row" onclick="copyMyId()">
+            <div class="card-ico" style="background:rgba(52,199,89,.12);color:var(--grn)">🔑</div>
+            <div class="card-info">
+              <div class="card-label">Kontakt-ID</div>
+              <div class="card-val" id="prof-id-short">—</div>
+            </div>
+            <div class="card-arrow" style="font-size:16px">⎘</div>
+          </div>
+        </div>
+        <div class="section-title">Meddelanden</div>
+        <div class="card">
+          <div class="card-row" onclick="openSheet('sh-timer')">
+            <div class="card-ico" style="background:rgba(255,59,48,.1);color:var(--red)">⏱</div>
+            <div class="card-info">
+              <div class="card-label">Självförstörande meddelanden</div>
+              <div class="card-val" id="prof-timer-lbl">Av</div>
+            </div>
+            <div class="card-arrow">›</div>
+          </div>
+          <div class="card-row" onclick="clearAllChats()">
+            <div class="card-ico" style="background:rgba(255,59,48,.1);color:var(--red)">🗑</div>
+            <div class="card-info"><div class="card-label" style="color:var(--red)">Rensa alla chattar</div></div>
+            <div class="card-arrow">›</div>
+          </div>
+        </div>
+        <div class="section-title">Installera app</div>
+        <div class="card">
+          <div class="card-row" onclick="showPwaGuide()">
+            <div class="card-ico" style="background:rgba(139,110,247,.16);color:var(--prp)">📲</div>
+            <div class="card-info">
+              <div class="card-label">Lägg till på hemskärmen</div>
+              <div class="card-val">Fungerar som en riktig app</div>
+            </div>
+            <div class="card-arrow">›</div>
+          </div>
+        </div>
+        <div class="section-title">Integritet</div>
+        <div class="card">
+          <div class="card-row" onclick="showVpnInfo()">
+            <div class="card-ico" style="background:rgba(90,200,250,.12);color:#5ac8fa">🔒</div>
+            <div class="card-info">
+              <div class="card-label">VPN-rekommendationer</div>
+              <div class="card-val">Öka anonymiteten ytterligare</div>
+            </div>
+            <div class="card-arrow">›</div>
+          </div>
+          <div class="card-row" onclick="exportData()">
+            <div class="card-ico" style="background:rgba(255,149,0,.12);color:#ff9500">📤</div>
+            <div class="card-info"><div class="card-label">Exportera data</div></div>
+            <div class="card-arrow">›</div>
+          </div>
+        </div>
+        <div class="section-title">Fara</div>
+        <div class="card">
+          <div class="card-row" onclick="deleteAccount()">
+            <div class="card-ico" style="background:rgba(255,59,48,.1);color:var(--red)">⚠</div>
+            <div class="card-info"><div class="card-label" style="color:var(--red)">Radera konto</div></div>
+            <div class="card-arrow">›</div>
+          </div>
+        </div>
+        <div style="height:30px"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ CHAT VIEW (1-on-1) -->
+    <div id="s-chat" class="screen">
+      <div class="topbar">
+        <button class="ib back" onclick="navBack()">‹</button>
+        <div class="av sm" id="chat-av"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="chat-name"></div>
+          <div style="font-size:11px;color:var(--t3)" id="chat-status">E2E krypterat</div>
+        </div>
+        <button class="ib" onclick="startCall()" title="Ring">📞</button>
+        <button class="ib" onclick="openSheet('sh-chat-menu')">⋯</button>
+      </div>
+      <div class="msgs" id="chat-msgs"></div>
+      <div class="typing-bar" id="chat-typing">
+        <div class="tdots"><span></span><span></span><span></span></div>
+        <span class="typing-who" id="chat-typing-who"></span>
+      </div>
+      <div class="input-bar">
+        <button class="att-btn" onclick="trigFile('dm-file')">📎</button>
+        <input type="file" id="dm-file" accept="image/*,video/*" style="display:none" onchange="handleFile(event,'dm')">
+        <textarea class="msg-ta" id="dm-inp" placeholder="Meddelande..." rows="1"
+          onkeydown="taKey(event,'dm')" oninput="taIn(event,'dm')"></textarea>
+        <button class="send-btn" onclick="doSend('dm')">➤</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ GROUP CHAT -->
+    <div id="s-group" class="screen">
+      <div class="topbar">
+        <button class="ib back" onclick="navBack()">‹</button>
+        <div class="av sm av-grp" id="grp-av-icon">👥</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="grp-name-hdr"></div>
+          <div style="font-size:11px;color:var(--t3)" id="grp-status-hdr"></div>
+        </div>
+        <button class="ib" onclick="openSheet('sh-grp-menu')">⋯</button>
+      </div>
+      <div class="msgs" id="grp-msgs"></div>
+      <div class="typing-bar" id="grp-typing">
+        <div class="tdots"><span></span><span></span><span></span></div>
+        <span class="typing-who" id="grp-typing-who"></span>
+      </div>
+      <div class="input-bar">
+        <button class="att-btn" onclick="trigFile('grp-file')">📎</button>
+        <input type="file" id="grp-file" accept="image/*,video/*" style="display:none" onchange="handleFile(event,'grp')">
+        <textarea class="msg-ta" id="grp-inp" placeholder="Meddelande..." rows="1"
+          onkeydown="taKey(event,'grp')" oninput="taIn(event,'grp')"></textarea>
+        <button class="send-btn" onclick="doSend('grp')">➤</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ CALL SCREEN -->
+    <div id="s-call" class="screen">
+      <div class="call-av" id="call-av"></div>
+      <div class="call-name" id="call-name"></div>
+      <div class="call-status" id="call-status">Ringer...</div>
+      <div class="call-timer" id="call-timer">00:00</div>
+      <div class="call-enc">🔒 E2E krypterat samtal</div>
+      <div class="call-btns">
+        <button class="call-btn cb-mute" id="mute-btn" onclick="toggleMute()">🎤</button>
+        <button class="call-btn cb-end" onclick="endCall(false)">📵</button>
+        <button class="call-btn cb-spk" id="spk-btn" onclick="toggleSpeaker()">🔊</button>
+      </div>
+    </div>
+
+  </div><!-- /main-area -->
+
+  <!-- ══════════════════════════════════ BOTTOM NAV -->
+  <div id="bottom-nav">
+    <button class="nav-tab active" id="tab-chats" onclick="switchTab('chats')">
+      <div class="ni nav-badge" id="nav-chats-badge">💬</div>
+      <span>Chattar</span>
+    </button>
+    <button class="nav-tab" id="tab-contacts" onclick="switchTab('contacts')">
+      <div class="ni">👥</div>
+      <span>Kontakter</span>
+    </button>
+    <button class="nav-tab" id="tab-profile" onclick="switchTab('profile')">
+      <div class="ni">👤</div>
+      <span>Profil</span>
+    </button>
+  </div>
+</div><!-- /app -->
+
+<!-- ══════════════════════════════════════════════════════
+     SHEETS
+══════════════════════════════════════════════════════ -->
+
+<!-- NEW CHAT -->
+<div class="sheet-bg" id="sh-new" onclick="bgClose(event,'sh-new')">
+<div class="sheet">
+  <div class="sh-handle"></div>
+  <div class="sh-title">Ny chatt</div>
+  <div class="sh-sub">Välj bland dina kontakter eller starta ett nytt samtal.</div>
+  <div id="sh-new-contacts"></div>
+  <div class="divider">eller</div>
+  <button class="ghost blue" onclick="closeSheet('sh-new');openSheet('sh-add-contact')">+ Lägg till ny kontakt</button>
+  <button class="ghost blue" onclick="closeSheet('sh-new');openSheet('sh-create-group')">👥 Skapa ny grupp</button>
+  <button class="ghost blue" onclick="closeSheet('sh-new');openSheet('sh-join-group')">🔑 Gå med i grupp</button>
+</div>
+</div>
+
+<!-- ADD CONTACT -->
+<div class="sheet-bg" id="sh-add-contact" onclick="bgClose(event,'sh-add-contact')">
+<div class="sheet">
+  <div class="sh-handle"></div>
+  <div class="sh-title">Lägg till kontakt</div>
+  <div class="sh-sub">Ange kontakt-ID direkt eller skicka en inbjudningskod.</div>
+  <div class="field">
+    <span class="lbl">Kontakt-ID</span>
+    <input class="fi" id="add-cid" placeholder="Klistra in kontakt-ID...">
+  </div>
+  <div class="field">
+    <span class="lbl">Namn (valfritt)</span>
+    <input class="fi" id="add-calias" placeholder="Vad vill du kalla dem?">
+  </div>
+  <button class="primary" onclick="addByID()">Lägg till →</button>
+  <div class="divider">inbjudan</div>
+  <div class="field">
+    <span class="lbl">Lös in inbjudningskod</span>
+    <input class="fi" id="redeem-inp" placeholder="Klistra in kod...">
+  </div>
+  <button class="ghost blue" onclick="redeemToken()">Lös in kod →</button>
+  <div class="divider">eller</div>
+  <button class="ghost blue" onclick="genContactInvite()">Generera din inbjudningskod →</button>
+  <div id="contact-invite-result" style="display:none;margin-top:2px">
+    <div class="token-box">
+      <span class="token-val" id="ci-token-val">—</span>
+      <button class="copy-btn" onclick="copyEl('ci-token-val')">Kopiera</button>
+    </div>
+    <div class="token-exp" id="ci-token-exp">Giltig 10 min · engångsanvändning</div>
+  </div>
+  <div style="font-size:11px;color:var(--t3);margin-top:6px;line-height:1.6">256-bit engångskod — matematiskt omöjlig att gissa. Skicka via vilket medium som helst.</div>
+</div>
+</div>
+
+<!-- CREATE GROUP -->
+<div class="sheet-bg" id="sh-create-group" onclick="bgClose(event,'sh-create-group')">
+<div class="sheet">
+  <div class="sh-handle"></div>
+  <div class="sh-title">Skapa grupp</div>
+  <div class="sh-sub">Gruppen krypteras med en nyckel deriverad från gruppnamnet och lösenordet. Ingen server ser lösenordet.</div>
+  <div class="field">
+    <span class="lbl">Gruppnamn</span>
+    <input class="fi" id="grp-create-name" placeholder="Ex: Alpha team...">
+  </div>
+  <div class="field">
+    <span class="lbl">Lösenord</span>
+    <input class="fi" id="grp-create-pw" type="password" placeholder="Välj ett starkt lösenord...">
+  </div>
+  <div class="field">
+    <span class="lbl">Bekräfta lösenord</span>
+    <input class="fi" id="grp-create-pw2" type="password" placeholder="Upprepa lösenordet...">
+  </div>
+  <button class="primary" onclick="createGroup()">Skapa grupp →</button>
+</div>
+</div>
+
+<!-- JOIN GROUP -->
+<div class="sheet-bg" id="sh-join-group" onclick="bgClose(event,'sh-join-group')">
+<div class="sheet">
+  <div class="sh-handle"></div>
+  <div class="sh-title">Gå med i grupp</div>
+  <div class="sh-sub">Ange exakt samma gruppnamn och lösenord som skaparen valde. Alternativt: lös in en gruppinbjudan nedan.</div>
+  <div class="field">
+    <span class="lbl">Gruppnamn</span>
+    <input class="fi" id="grp-join-name" placeholder="Exakt gruppnamn...">
+  </div>
+  <div class="field">
+    <span class="lbl">Lösenord</span>
+    <input class="fi" id="grp-join-pw" type="password" placeholder="Lösenord...">
+  </div>
+  <button class="primary" onclick="joinGroupByPassword()">Gå med →</button>
+  <div class="divider">eller via inbjudningskod</div>
+  <div class="field">
+    <span class="lbl">Inbjudningskod</span>
+    <input class="fi" id="grp-redeem-inp" placeholder="Klistra in gruppkod...">
+  </div>
+  <button class="ghost blue" onclick="redeemGroupToken()">Lös in gruppkod →</button>
+</div>
+</div>
+
+<!-- RENAME -->
+<div class="sheet-bg" id="sh-rename" onclick="bgClose(event,'sh-rename')">
+<div class="sheet">
+  <div class="sh-handle"></div>
+  <div class="sh-title">Byt alias</div>
+  <div class="sh-sub">Alla dina kontakter ser det nya namnet.</div>
+  <div class="alias-row" style="margin-bottom:14px">
+    <input class="fi" id="rename-inp" maxlength="24" placeholder="Nytt alias...">
+    <button class="regen" onclick="regenAlias('rename-inp')">↺</button>
+  </div>
+  <button class="primary" onclick="confirmRename()">Spara →</button>
+</div>
+</div>
+
+<!-- TIMER -->
+<div class="sheet-bg" id="sh-timer" onclick="bgClose(event,'sh-timer')">
+<div class="sheet">
+  <div class="sh-handle"></div>
+  <div class="sh-title">Självförstörande meddelanden</div>
+  <div class="sh-sub">Alla nya meddelanden raderas automatiskt efter vald tid.</div>
+  <button class="ghost" data-val="0" onclick="setTimer(this)">Av</button>
+  <button class="ghost" data-val="60" onclick="setTimer(this)">1 minut</button>
+  <button class="ghost" data-val="300" onclick="setTimer(this)">5 minuter</button>
+  <button class="ghost" data-val="3600" onclick="setTimer(this)">1 timme</button>
+  <button class="ghost" data-val="86400" onclick="setTimer(this)">1 dag</button>
+</div>
+</div>
+
+<!-- CHAT MENU -->
+<div class="sheet-bg" id="sh-chat-menu" onclick="bgClose(event,'sh-chat-menu')">
+<div class="sheet">
+  <div class="sh-handle"></div>
+  <div class="sh-title" id="cmenu-name">—</div>
+  <div style="font-size:12px;color:var(--t3);font-family:monospace;word-break:break-all;margin-bottom:18px" id="cmenu-id">—</div>
+  <button class="ghost" onclick="copyCmenuId()">Kopiera kontakt-ID</button>
+  <button class="ghost blue" onclick="genContactInviteForChat()">Generera inbjudningskod</button>
+  <button class="ghost red" onclick="clearChatHistory()">Rensa chatthistorik</button>
+  <button class="ghost red" onclick="deleteCurrentContact()">Ta bort kontakt</button>
+</div>
+</div>
+
+<!-- GROUP MENU -->
+<div class="sheet-bg" id="sh-grp-menu" onclick="bgClose(event,'sh-grp-menu')">
+<div class="sheet">
+  <div class="sh-handle"></div>
+  <div class="sh-title" id="gmenu-name">—</div>
+  <div style="font-size:12px;color:var(--t3);margin-bottom:18px" id="gmenu-info">—</div>
+  <button class="ghost blue" onclick="genGroupInvite()">Generera inbjudan till gruppen →</button>
+  <div id="grp-invite-result" style="display:none;margin-bottom:10px">
+    <div class="token-box">
+      <span class="token-val" id="gi-token-val">—</span>
+      <button class="copy-btn" onclick="copyEl('gi-token-val')">Kopiera</button>
+    </div>
+    <div class="token-exp">Giltig 10 min · engångsanvändning</div>
+  </div>
+  <button class="ghost red" onclick="clearGroupHistory()">Rensa grupphistorik</button>
+  <button class="ghost red" onclick="leaveGroup()">Lämna grupp</button>
+</div>
+</div>
+
+<!-- INCOMING CALL -->
+<div class="sheet-bg" id="sh-incoming">
+<div class="sheet" style="text-align:center">
+  <div class="sh-handle"></div>
+  <div style="font-size:56px;margin-bottom:12px" id="inc-av">?</div>
+  <div class="sh-title" id="inc-name">—</div>
+  <div style="color:var(--t3);font-size:13px;margin:8px 0 24px">Inkommande krypterat samtal</div>
+  <div style="display:flex;gap:14px">
+    <button onclick="rejectCall()" style="flex:1;padding:14px;background:rgba(255,59,48,.15);border:1px solid rgba(255,59,48,.3);border-radius:10px;color:var(--red);font-size:16px;cursor:pointer;font-family:inherit">📵 Avvisa</button>
+    <button onclick="acceptCall()" style="flex:1;padding:14px;background:rgba(52,199,89,.15);border:1px solid rgba(52,199,89,.3);border-radius:10px;color:var(--grn);font-size:16px;cursor:pointer;font-family:inherit">📞 Svara</button>
+  </div>
+</div>
+</div>
+
+<!-- PWA GUIDE -->
+<div class="sheet-bg" id="sh-pwa" onclick="bgClose(event,'sh-pwa')">
+<div class="sheet">
+  <div class="sh-handle"></div>
+  <div class="sh-title">📲 Installera som app</div>
+  <div class="sh-sub">Följ stegen för din enhet:</div>
+  <div style="background:var(--s2);border-radius:10px;padding:16px;margin-bottom:12px">
+    <div style="font-weight:600;margin-bottom:10px;color:var(--acc)">iPhone / iPad (Safari)</div>
+    <div style="font-size:14px;color:var(--t2);line-height:1.8">
+      1. Öppna LibraOS i <b>Safari</b><br>
+      2. Tryck på <b>Dela-ikonen</b> (ruta med pil upp) 📤<br>
+      3. Scrolla och välj <b>"Lägg till på hemskärmen"</b><br>
+      4. Tryck <b>"Lägg till"</b> — klart! 🎉
+    </div>
+  </div>
+  <div style="background:var(--s2);border-radius:10px;padding:16px">
+    <div style="font-weight:600;margin-bottom:10px;color:var(--grn)">Android (Chrome)</div>
+    <div style="font-size:14px;color:var(--t2);line-height:1.8">
+      1. Öppna LibraOS i <b>Chrome</b><br>
+      2. Tryck på <b>⋮</b> (tre punkter) uppe till höger<br>
+      3. Välj <b>"Lägg till på startskärmen"</b><br>
+      4. Tryck <b>"Lägg till"</b> — klart! 🎉
+    </div>
+  </div>
+  <div style="font-size:12px;color:var(--t3);margin-top:14px;line-height:1.6">
+    Appen fungerar offline och startar utan webbläsarens UI — precis som Signal eller Telegram.
+  </div>
+</div>
+</div>
+
+<!-- VPN INFO -->
+<div class="sheet-bg" id="sh-vpn" onclick="bgClose(event,'sh-vpn')">
+<div class="sheet">
+  <div class="sh-handle"></div>
+  <div class="sh-title">🔒 VPN-rekommendationer</div>
+  <div class="sh-sub">LibraOS krypterar dina meddelanden men din IP-adress är synlig för din internetleverantör. En VPN döljer även det.</div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-row">
+      <div class="card-ico" style="background:rgba(255,149,0,.12);color:#ff9500">🦔</div>
+      <div class="card-info">
+        <div class="card-label">Mullvad VPN</div>
+        <div class="card-val">mullvad.net · Bäst för anonymitet · 5€/mån</div>
+      </div>
+    </div>
+    <div class="card-row">
+      <div class="card-ico" style="background:rgba(52,199,89,.1);color:var(--grn)">🛡</div>
+      <div class="card-info">
+        <div class="card-label">ProtonVPN</div>
+        <div class="card-val">protonvpn.com · Gratis tier finns · Schweiz</div>
+      </div>
+    </div>
+    <div class="card-row">
+      <div class="card-ico" style="background:var(--acc3);color:var(--acc)">🌐</div>
+      <div class="card-info">
+        <div class="card-label">Tor Browser</div>
+        <div class="card-val">torproject.org · Maximalt anonym · Gratis</div>
+      </div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:var(--t3);line-height:1.7">
+    LibraOS + VPN = meddelandeinnehåll krypterat <b>och</b> IP-adress dold. Det ger ett skydd i klass med professionella säkerhetslösningar.
+  </div>
+</div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div id="ctx-menu">
+  <div class="ctx-item" onclick="ctxCopy()">Kopiera text</div>
+  <div class="ctx-item red" onclick="ctxDelete()">Radera meddelande</div>
+  <div class="ctx-item" onclick="closeCtx()">Avbryt</div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lb-img" src="" alt="">
+</div>
+<div class="toast" id="toast"></div>
+<audio id="call-audio" autoplay playsinline></audio>
+
+<!-- ══════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════════════════
+//  LibraOS-4677  —  Complete Application Logic
+// ═══════════════════════════════════════════════════════════════════
+
+const RELAY = 'wss://libraos-1.onrender.com';
+
+// ─── Character sets (defined before any usage) ──────────────────
+const B62 = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const ALC = 'abcdefghjkmnpqrstuvwxyz0123456789@#!$&*-_';
+const AVC = ['av-b','av-g','av-o','av-p','av-r','av-t'];
+
+// ─── Pure utilities ──────────────────────────────────────────────
+function rndId(n){ const b=crypto.getRandomValues(new Uint8Array(n)); return Array.from(b).map(x=>B62[x%B62.length]).join(''); }
+function rndAlias(){ const b=crypto.getRandomValues(new Uint8Array(8)); return Array.from(b).map(x=>ALC[x%ALC.length]).join(''); }
+function avCls(id){ return AVC[id.charCodeAt(0)%AVC.length]; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtTime(ts){ return new Date(ts).toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'}); }
+function fmtTimer(s){
+  if(!s||s===0)return'Av';
+  if(s<60)return s+'s';
+  if(s<3600){const m=Math.floor(s/60),r=s%60;return r?`${m}m ${r}s`:`${m}m`;}
+  if(s<86400){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),r=s%60;return m?`${h}h ${m}m`:r?`${h}h ${r}s`:`${h}h`;}
+  return Math.floor(s/86400)+'d';
+}
+function fmtBytes(n){ if(!n)return''; if(n<1024)return n+'B'; if(n<1048576)return(n/1024).toFixed(1)+'KB'; return(n/1048576).toFixed(1)+'MB'; }
+function b64e(u8){ return btoa(String.fromCharCode(...u8)); }
+function b64d(s){ return new Uint8Array(atob(s).split('').map(c=>c.charCodeAt(0))); }
+function copyText(t){ navigator.clipboard.writeText(t).then(()=>toast('Kopierat ✓')).catch(()=>toast('Kunde inte kopiera')); }
+function copyEl(id){ copyText(document.getElementById(id).textContent.trim()); }
+
+let _toastT;
+function toast(msg,d=2800){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(_toastT); _toastT=setTimeout(()=>el.classList.remove('show'),d);
+}
+
+// ─── State ───────────────────────────────────────────────────────
+function freshState(){
+  return {
+    id:rndId(32), alias:rndAlias(), msgTimer:0,
+    contacts:{},  // id → {id,alias,messages:[],unread:0}
+    groups:{},    // gid → {id,name,password,members:[],messages:[],encKey:b64}
+    started:false,
+  };
+}
+function loadState(){
+  try{ const s=localStorage.getItem('_libra6'); if(s)return JSON.parse(s); }catch{}
+  return freshState();
+}
+function save(){ try{ localStorage.setItem('_libra6',JSON.stringify(ME)); }catch{} }
+
+const ME = loadState();
+
+// ─── Crypto ──────────────────────────────────────────────────────
+const _KC = {}; // cache: secret→key
+
+async function deriveAES(secret, salt){
+  const cacheKey = secret+'|'+salt;
+  if(_KC[cacheKey]) return _KC[cacheKey];
+  const enc=new TextEncoder();
+  const km=await crypto.subtle.importKey('raw',enc.encode(secret),'PBKDF2',false,['deriveKey']);
+  const k=await crypto.subtle.deriveKey(
+    {name:'PBKDF2',salt:enc.encode(salt),iterations:200000,hash:'SHA-256'},
+    km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']
+  );
+  _KC[cacheKey]=k; return k;
+}
+
+// DM key: derived from sorted pair of IDs — same for both ends
+async function dmKey(peerId){
+  const secret=[ME.id,peerId].sort().join('‖');
+  return deriveAES(secret,'libra-dm-v4');
+}
+
+// Group key: derived from groupName+password — same for everyone who knows them
+async function groupAESKey(groupName, password){
+  return deriveAES(groupName+'‖'+password,'libra-grp-v4');
+}
+
+async function encObj(obj, key){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const enc=new TextEncoder();
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(JSON.stringify(obj)));
+  return {iv:b64e(iv),ct:b64e(new Uint8Array(ct))};
+}
+
+async function decObj(data, key){
+  try{
+    const iv=b64d(data.iv), ct=b64d(data.ct);
+    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
+    return JSON.parse(new TextDecoder().decode(pt));
+  }catch{ return null; }
+}
+
+// ─── WebSocket ────────────────────────────────────────────────────
+let ws=null, wsOK=false, wsRetry=null;
+
+function wsConnect(){
+  if(ws&&(ws.readyState===0||ws.readyState===1)) return;
+  try{ ws=new WebSocket(RELAY); }catch{ wsScheduleReconnect(); return; }
+  ws.onopen=()=>{
+    wsOK=true; clearTimeout(wsRetry);
+    setConnDot(true);
+    wsSend({type:'REGISTER',clientId:ME.id});
+    // Rejoin all groups
+    Object.values(ME.groups).forEach(g=>wsSend({type:'GROUP_JOIN',groupId:g.id}));
+    toast('Ansluten ✓');
+  };
+  ws.onmessage=async e=>{
+    let m; try{m=JSON.parse(e.data);}catch{return;}
+    await onRelay(m);
+  };
+  ws.onclose=()=>{ wsOK=false; setConnDot(false); wsScheduleReconnect(); };
+  ws.onerror=()=>{ wsOK=false; setConnDot(false); };
+}
+function wsScheduleReconnect(){ clearTimeout(wsRetry); wsRetry=setTimeout(wsConnect,4000); }
+function wsSend(obj){ if(ws&&ws.readyState===1) ws.send(JSON.stringify(obj)); else wsConnect(); }
+function setConnDot(ok){ const d=document.getElementById('conn-dot'); if(d) d.classList.toggle('ok',ok); }
+
+// ─── Relay event handler ─────────────────────────────────────────
+async function onRelay(m){
+  switch(m.type){
+    case 'REGISTERED': break;
+    case 'PONG': break;
+
+    case 'DM':{
+      const key=await dmKey(m.from);
+      const p=await decObj(m.enc,key);
+      if(p) await onDM(m.from,p);
+      break;
+    }
+
+    case 'GROUP_MSG':{
+      const g=ME.groups[m.groupId];
+      if(!g) break;
+      const key=await groupAESKey(g.name,g.password);
+      const p=await decObj(m.enc,key);
+      if(p&&p.from!==ME.id) onGroupMsg(m.groupId,p);
+      break;
+    }
+
+    case 'INVITE_CREATED': break;
+
+    case 'INVITE_REDEEMED':{
+      // Could be: (a) someone redeemed our contact invite, (b) someone redeemed our group invite
+      if(m.fromId===ME.id){
+        // We were the inviter
+        addContact(m.redeemerId, m.redeemerAlias||m.redeemerId.slice(0,8));
+        renderContacts(); renderChats();
+        toast(`${m.redeemerAlias||'Ny kontakt'} lades till!`);
+        if(m.groupId&&ME.groups[m.groupId]){
+          // Send them the group key via DM
+          await sendGroupKeyToPeer(m.redeemerId, m.groupId);
+          if(!ME.groups[m.groupId].members.includes(m.redeemerId)){
+            ME.groups[m.groupId].members.push(m.redeemerId); save();
+          }
+        }
+      } else if(m.redeemerId===ME.id){
+        // We redeemed someone's invite
+        addContact(m.fromId, m.fromAlias||m.fromId.slice(0,8));
+        save(); renderContacts(); renderChats();
+        toast(`${m.fromAlias||'Kontakt'} lades till!`);
+        // If group invite, wait for them to DM us the group key
+      }
+      break;
+    }
+
+    case 'INVITE_ACCEPTED':{
+      // Someone accepted our invite (relay notification)
+      break;
+    }
+
+    case 'INVITE_INVALID':{
+      toast(m.reason==='expired'?'Koden har löpt ut (10 min)':'Ogiltig kod — kontrollera och försök igen');
+      break;
+    }
+
+    case 'OFFLINE':{
+      toast('Kontakten är inte online just nu');
+      break;
+    }
+
+    case 'WEBRTC_OFFER':
+    case 'WEBRTC_ANSWER':
+    case 'WEBRTC_ICE':{
+      if(m.to===ME.id) await onCallSignal(m);
+      break;
+    }
+  }
+}
+
+// ─── DM dispatch ─────────────────────────────────────────────────
+async function onDM(fromId, p){
+  switch(p.type){
+    case 'HANDSHAKE':
+      if(!ME.contacts[fromId]){
+        addContact(fromId, p.alias||fromId.slice(0,8));
+        renderContacts(); renderChats();
+        toast(`${p.alias||'Ny kontakt'} lade till dig`);
+      } else {
+        ME.contacts[fromId].alias=p.alias||ME.contacts[fromId].alias;
+        save(); renderContacts(); renderChats();
+      }
+      // Echo back
+      await dmSend(fromId,{type:'HANDSHAKE_ACK',alias:ME.alias,id:ME.id});
+      break;
+
+    case 'HANDSHAKE_ACK':
+      if(ME.contacts[fromId]){
+        ME.contacts[fromId].alias=p.alias||ME.contacts[fromId].alias;
+        save(); renderContacts(); renderChats();
+      }
+      break;
+
+    case 'MESSAGE':
+      receiveMsg(fromId,p);
+      break;
+
+    case 'TYPING':
+      if(activeChat===fromId) showTyping('chat',p.alias);
+      break;
+
+    case 'STOP_TYPING':
+      if(activeChat===fromId) hideTyping('chat');
+      break;
+
+    case 'RENAME':
+      if(ME.contacts[fromId]){
+        ME.contacts[fromId].alias=p.newAlias;
+        save(); renderContacts(); renderChats();
+        if(activeChat===fromId) document.getElementById('chat-name').textContent=p.newAlias;
+      }
+      break;
+
+    case 'GROUP_KEY_DELIVERY':
+      // Receive group membership via DM
+      if(!ME.groups[p.groupId]){
+        ME.groups[p.groupId]={id:p.groupId,name:p.groupName,password:p.password,members:p.members||[ME.id,fromId],messages:[]};
+        save(); renderChats();
+        wsSend({type:'GROUP_JOIN',groupId:p.groupId});
+        toast(`Du gick med i gruppen "${p.groupName}"`);
+      }
+      break;
+
+    case 'CALL_END':
+      endCall(true);
+      break;
+  }
+}
+
+async function dmSend(toId, payload){
+  const key=await dmKey(toId);
+  const e=await encObj(payload,key);
+  wsSend({type:'DM',to:toId,from:ME.id,enc:e});
+}
+
+// ─── Group message handler ────────────────────────────────────────
+function onGroupMsg(gid, p){
+  if(p.type==='MESSAGE') receiveGroupMsg(gid,p);
+  else if(p.type==='TYPING'){ if(activeGroup===gid) showTyping('grp',p.alias); }
+  else if(p.type==='STOP_TYPING'){ if(activeGroup===gid) hideTyping('grp'); }
+  else if(p.type==='MEMBER_JOINED'){
+    if(ME.groups[gid]&&!ME.groups[gid].members.includes(p.memberId)){
+      ME.groups[gid].members.push(p.memberId); save(); updateGrpHdr();
+    }
+  }
+}
+
+async function grpSend(gid, payload){
+  const g=ME.groups[gid]; if(!g) return;
+  const key=await groupAESKey(g.name,g.password);
+  const e=await encObj(payload,key);
+  wsSend({type:'GROUP_MSG',groupId:gid,from:ME.id,enc:e});
+}
+
+async function sendGroupKeyToPeer(peerId, gid){
+  const g=ME.groups[gid]; if(!g) return;
+  await dmSend(peerId,{type:'GROUP_KEY_DELIVERY',groupId:g.id,groupName:g.name,password:g.password,members:g.members});
+}
+
+// ─── Contact management ───────────────────────────────────────────
+function addContact(id, alias){
+  if(id===ME.id) return;
+  if(!ME.contacts[id]) ME.contacts[id]={id,alias:alias||id.slice(0,8),messages:[],unread:0};
+  else if(alias) ME.contacts[id].alias=alias;
+  save();
+}
+
+async function addByID(){
+  const id=document.getElementById('add-cid').value.trim();
+  const alias=document.getElementById('add-calias').value.trim();
+  if(!id) return toast('Ange ett kontakt-ID');
+  if(id===ME.id) return toast('Det är ditt eget ID');
+  addContact(id, alias||id.slice(0,8));
+  save(); renderContacts(); renderChats();
+  closeSheet('sh-add-contact');
+  toast('Kontakt tillagd');
+  // Send handshake
+  await dmSend(id,{type:'HANDSHAKE',alias:ME.alias,id:ME.id});
+}
+
+function genContactInvite(){
+  const token=rndId(42);
+  wsSend({type:'CREATE_INVITE',token,fromId:ME.id,fromAlias:ME.alias});
+  document.getElementById('ci-token-val').textContent=token;
+  document.getElementById('contact-invite-result').style.display='block';
+  startTokenTimer('ci-token-exp',600);
+  toast('Inbjudningskod skapad');
+}
+
+function genContactInviteForChat(){
+  closeSheet('sh-chat-menu');
+  openSheet('sh-add-contact');
+  setTimeout(genContactInvite,300);
+}
+
+async function redeemToken(){
+  const token=document.getElementById('redeem-inp').value.trim();
+  if(!token) return toast('Ange en kod');
+  wsSend({type:'REDEEM_INVITE',token,myId:ME.id,myAlias:ME.alias});
+  toast('Löser in...');
+}
+
+// ─── Groups ───────────────────────────────────────────────────────
+async function createGroup(){
+  const name=document.getElementById('grp-create-name').value.trim();
+  const pw=document.getElementById('grp-create-pw').value;
+  const pw2=document.getElementById('grp-create-pw2').value;
+  if(!name) return toast('Ange ett gruppnamn');
+  if(!pw) return toast('Ange ett lösenord');
+  if(pw!==pw2) return toast('Lösenorden matchar inte');
+
+  // GroupID derived deterministically from name+pw so anyone can join with same creds
+  const gid=await deriveGroupId(name,pw);
+  if(ME.groups[gid]) return toast('Du är redan med i den gruppen');
+
+  ME.groups[gid]={id:gid,name,password:pw,members:[ME.id],messages:[]};
+  save();
+  document.getElementById('grp-create-name').value='';
+  document.getElementById('grp-create-pw').value='';
+  document.getElementById('grp-create-pw2').value='';
+  closeSheet('sh-create-group');
+  wsSend({type:'GROUP_JOIN',groupId:gid});
+  renderChats();
+  openGroup(gid);
+  toast('Grupp skapad!');
+}
+
+async function joinGroupByPassword(){
+  const name=document.getElementById('grp-join-name').value.trim();
+  const pw=document.getElementById('grp-join-pw').value;
+  if(!name) return toast('Ange gruppnamn');
+  if(!pw) return toast('Ange lösenord');
+
+  const gid=await deriveGroupId(name,pw);
+  if(ME.groups[gid]) return toast('Du är redan med i gruppen');
+
+  ME.groups[gid]={id:gid,name,password:pw,members:[ME.id],messages:[]};
+  save();
+  document.getElementById('grp-join-name').value='';
+  document.getElementById('grp-join-pw').value='';
+  closeSheet('sh-join-group');
+  wsSend({type:'GROUP_JOIN',groupId:gid});
+  renderChats();
+  openGroup(gid);
+  toast(`Gick med i "${name}"!`);
+}
+
+async function redeemGroupToken(){
+  const token=document.getElementById('grp-redeem-inp').value.trim();
+  if(!token) return toast('Ange en kod');
+  wsSend({type:'REDEEM_INVITE',token,myId:ME.id,myAlias:ME.alias});
+  toast('Löser in gruppkod...');
+}
+
+// GroupID is a 20-char hash of name+password — deterministic, cryptographic
+async function deriveGroupId(name, pw){
+  const enc=new TextEncoder();
+  const data=enc.encode(name+'‖'+pw+'‖libra-gid-v4');
+  const hash=await crypto.subtle.digest('SHA-256',data);
+  const arr=new Uint8Array(hash);
+  return Array.from(arr.slice(0,15)).map(x=>B62[x%B62.length]).join('');
+}
+
+async function genGroupInvite(){
+  if(!activeGroup) return;
+  const g=ME.groups[activeGroup];
+  const token=rndId(42);
+  wsSend({type:'CREATE_INVITE',token,fromId:ME.id,fromAlias:ME.alias,groupId:g.id,groupName:g.name});
+  document.getElementById('gi-token-val').textContent=token;
+  document.getElementById('grp-invite-result').style.display='block';
+  toast('Gruppinbjudan skapad');
+}
+
+function leaveGroup(){
+  if(!activeGroup) return;
+  if(!confirm(`Lämna gruppen?`)) return;
+  wsSend({type:'GROUP_LEAVE',groupId:activeGroup});
+  delete ME.groups[activeGroup]; save();
+  closeSheet('sh-grp-menu');
+  navBack(); renderChats();
+  toast('Lämnade gruppen');
+}
+
+// ─── Messaging ────────────────────────────────────────────────────
+let activeChat=null, activeGroup=null;
+let myTypT=null;
+const peerTypT={};
+
+async function doSend(mode){
+  if(mode==='dm'){
+    const inp=document.getElementById('dm-inp');
+    const text=inp.value.trim();
+    if(!text||!activeChat) return;
+    inp.value=''; taResize(inp);
+    const m={id:rndId(16),msgType:'text',text,ts:Date.now(),timer:ME.msgTimer,own:true};
+    pushToContact(activeChat,m);
+    appendMsg('chat-msgs',m,true);
+    await dmSend(activeChat,{type:'MESSAGE',...m,own:undefined,from:ME.id,alias:ME.alias});
+    clearMyTyping();
+    if(m.timer>0) schedDel(m.id,m.timer,'dm',activeChat);
+  } else {
+    const inp=document.getElementById('grp-inp');
+    const text=inp.value.trim();
+    if(!text||!activeGroup) return;
+    inp.value=''; taResize(inp);
+    const g=ME.groups[activeGroup];
+    const m={id:rndId(16),msgType:'text',text,ts:Date.now(),timer:ME.msgTimer,from:ME.id,alias:ME.alias,own:true};
+    g.messages.push(m); if(g.messages.length>500) g.messages=g.messages.slice(-500); save();
+    appendMsg('grp-msgs',m,true);
+    await grpSend(activeGroup,{type:'MESSAGE',...m,own:undefined});
+    if(m.timer>0) schedDel(m.id,m.timer,'grp',activeGroup);
+  }
+  renderChats();
+}
+
+function pushToContact(cid, m){
+  const c=ME.contacts[cid]; if(!c) return;
+  c.messages.push(m); if(c.messages.length>500) c.messages=c.messages.slice(-500); save();
+}
+
+function receiveMsg(fromId, m){
+  const c=ME.contacts[fromId]; if(!c) return;
+  const msg={...m,own:false};
+  c.messages.push(msg); if(c.messages.length>500) c.messages=c.messages.slice(-500);
+  if(activeChat===fromId){
+    appendMsg('chat-msgs',msg,false);
+  } else {
+    c.unread=(c.unread||0)+1;
+  }
+  save(); renderChats();
+  if(msg.timer>0) schedDel(msg.id,msg.timer,'dm',fromId);
+}
+
+function receiveGroupMsg(gid, m){
+  const g=ME.groups[gid]; if(!g) return;
+  const msg={...m,own:false};
+  g.messages.push(msg); if(g.messages.length>500) g.messages=g.messages.slice(-500); save();
+  if(activeGroup===gid) appendMsg('grp-msgs',msg,false);
+  else renderChats();
+  if(msg.timer>0) schedDel(msg.id,msg.timer,'grp',gid);
+}
+
+// ─── Message DOM ──────────────────────────────────────────────────
+function appendMsg(wrapId, m, own){
+  const wrap=document.getElementById(wrapId); if(!wrap) return;
+  const row=document.createElement('div');
+  row.className='mr '+(own?'own':m.msgType==='system'?'sys':'other');
+  row.dataset.mid=m.id;
+  row.dataset.text=m.text||'';
+
+  // Sender label in groups
+  if(!own && wrapId==='grp-msgs' && m.alias){
+    const sl=document.createElement('div');
+    sl.className='sender-lbl'; sl.textContent=m.alias; row.appendChild(sl);
+  }
+
+  const bub=document.createElement('div');
+  bub.className='bubble';
+
+  if(m.msgType==='image'){
+    bub.classList.add('img-b');
+    const img=document.createElement('img');
+    img.src=m.data; img.loading='lazy';
+    img.onclick=()=>openLightbox(m.data);
+    bub.appendChild(img);
+  } else if(m.msgType==='file'){
+    bub.classList.add('file-b');
+    bub.innerHTML=`<div class="file-ico">📄</div><div class="file-det"><div class="file-nm">${esc(m.fileName)}</div><div class="file-sz">${fmtBytes(m.fileSize)}</div></div>`;
+    bub.onclick=()=>dlFile(m.data,m.fileName);
+  } else if(m.msgType==='system'){
+    bub.textContent=m.text||'';
+  } else {
+    bub.textContent=m.text||'';
+  }
+
+  // Long-press to delete / copy
+  let lpt;
+  bub.addEventListener('touchstart',()=>{ lpt=setTimeout(()=>openCtx(m,row),600); },{passive:true});
+  bub.addEventListener('touchend',()=>clearTimeout(lpt));
+  bub.addEventListener('touchmove',()=>clearTimeout(lpt));
+  bub.addEventListener('contextmenu',e=>{e.preventDefault();openCtx(m,row);});
+
+  row.appendChild(bub);
+
+  const meta=document.createElement('div');
+  meta.className='msg-meta '+(own?'r':'l');
+  meta.innerHTML=`<span class="msg-time">${fmtTime(m.ts)}</span>`;
+  if(own) meta.innerHTML+=`<span class="msg-tick">✓✓</span>`;
+  if(m.timer>0){
+    const pill=document.createElement('span');
+    pill.className='tpill'; pill.id='tp-'+m.id;
+    pill.textContent=fmtTimer(m.timer);
+    meta.appendChild(pill);
+  }
+  row.appendChild(meta);
+  wrap.appendChild(row);
+  wrap.scrollTop=wrap.scrollHeight;
+}
+
+function renderChatMsgs(){
+  const wrap=document.getElementById('chat-msgs'); if(!wrap) return;
+  wrap.innerHTML='';
+  const c=ME.contacts[activeChat]; if(!c) return;
+  c.messages.forEach(m=>appendMsg('chat-msgs',m,m.own));
+}
+
+function renderGrpMsgs(){
+  const wrap=document.getElementById('grp-msgs'); if(!wrap) return;
+  wrap.innerHTML='';
+  const g=ME.groups[activeGroup]; if(!g) return;
+  g.messages.forEach(m=>appendMsg('grp-msgs',m,m.from===ME.id));
+}
+
+// ─── Context menu (long-press) ────────────────────────────────────
+let ctxMsg=null, ctxRow=null;
+function openCtx(m,row){
+  ctxMsg=m; ctxRow=row;
+  const menu=document.getElementById('ctx-menu');
+  menu.style.bottom='80px'; menu.style.left='50%'; menu.style.transform='translateX(-50%)';
+  menu.classList.add('open');
+}
+function closeCtx(){ document.getElementById('ctx-menu').classList.remove('open'); ctxMsg=null; ctxRow=null; }
+function ctxCopy(){ if(ctxMsg) copyText(ctxMsg.text||''); closeCtx(); }
+function ctxDelete(){
+  if(!ctxMsg||!ctxRow) return;
+  ctxRow.style.opacity='0'; ctxRow.style.transition='opacity .25s';
+  setTimeout(()=>ctxRow.remove(),260);
+  // Remove from store
+  if(activeChat&&ME.contacts[activeChat]){
+    ME.contacts[activeChat].messages=ME.contacts[activeChat].messages.filter(m=>m.id!==ctxMsg.id);
+    save();
+  }
+  if(activeGroup&&ME.groups[activeGroup]){
+    ME.groups[activeGroup].messages=ME.groups[activeGroup].messages.filter(m=>m.id!==ctxMsg.id);
+    save();
+  }
+  closeCtx();
+}
+document.addEventListener('click',e=>{ if(!document.getElementById('ctx-menu').contains(e.target)) closeCtx(); });
+
+// ─── Self-destruct ────────────────────────────────────────────────
+const _delIv={};
+function schedDel(msgId,secs,mode,ctxId){
+  let r=secs;
+  const iv=setInterval(()=>{
+    r--;
+    const pill=document.getElementById('tp-'+msgId);
+    if(pill){pill.textContent=fmtTimer(r);if(r<=10)pill.classList.add('urg');}
+    if(r<=0){
+      clearInterval(iv); delete _delIv[msgId];
+      const el=document.querySelector(`[data-mid="${msgId}"]`);
+      if(el){el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300);}
+      if(mode==='dm'&&ME.contacts[ctxId]){ ME.contacts[ctxId].messages=ME.contacts[ctxId].messages.filter(m=>m.id!==msgId); save(); }
+      if(mode==='grp'&&ME.groups[ctxId]){ ME.groups[ctxId].messages=ME.groups[ctxId].messages.filter(m=>m.id!==msgId); save(); }
+    }
+  },1000);
+  _delIv[msgId]=iv;
+}
+
+// ─── Files ────────────────────────────────────────────────────────
+function trigFile(id){ document.getElementById(id).click(); }
+function handleFile(e,mode){
+  const file=e.target.files[0]; if(!file) return;
+  if(file.size>20*1024*1024) return toast('Max 20 MB');
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    const isImg=file.type.startsWith('image/');
+    const m={id:rndId(16),msgType:isImg?'image':'file',data:ev.target.result,
+      fileName:file.name,fileSize:file.size,ts:Date.now(),timer:ME.msgTimer};
+    if(mode==='dm'&&activeChat){
+      const m2={...m,own:true}; pushToContact(activeChat,m2); appendMsg('chat-msgs',m2,true);
+      await dmSend(activeChat,{type:'MESSAGE',...m,own:undefined,from:ME.id,alias:ME.alias});
+      if(m.timer>0) schedDel(m.id,m.timer,'dm',activeChat);
+    } else if(mode==='grp'&&activeGroup){
+      const g=ME.groups[activeGroup];
+      const m2={...m,from:ME.id,alias:ME.alias,own:true};
+      g.messages.push(m2); save(); appendMsg('grp-msgs',m2,true);
+      await grpSend(activeGroup,{type:'MESSAGE',...m,own:undefined,from:ME.id,alias:ME.alias});
+      if(m.timer>0) schedDel(m.id,m.timer,'grp',activeGroup);
+    }
+    renderChats();
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+function dlFile(data,name){ const a=document.createElement('a');a.href=data;a.download=name;a.click(); }
+
+// ─── Typing ───────────────────────────────────────────────────────
+function showTyping(ctx,alias){
+  const bar=document.getElementById(ctx==='chat'?'chat-typing':'grp-typing');
+  const who=document.getElementById(ctx==='chat'?'chat-typing-who':'grp-typing-who');
+  if(bar) bar.classList.add('show');
+  if(who) who.textContent=(alias||'?')+' skriver...';
+  clearTimeout(peerTypT[ctx]);
+  peerTypT[ctx]=setTimeout(()=>hideTyping(ctx),3500);
+}
+function hideTyping(ctx){
+  const bar=document.getElementById(ctx==='chat'?'chat-typing':'grp-typing');
+  if(bar) bar.classList.remove('show');
+}
+async function signalTyping(mode){
+  if(mode==='dm'&&activeChat){
+    await dmSend(activeChat,{type:'TYPING',alias:ME.alias});
+  } else if(mode==='grp'&&activeGroup){
+    await grpSend(activeGroup,{type:'TYPING',alias:ME.alias,from:ME.id});
+  }
+  clearTimeout(myTypT);
+  myTypT=setTimeout(()=>clearMyTyping(),2500);
+}
+async function clearMyTyping(){
+  if(activeChat) await dmSend(activeChat,{type:'STOP_TYPING'});
+  if(activeGroup) await grpSend(activeGroup,{type:'STOP_TYPING',from:ME.id});
+}
+
+// ─── Input handlers ───────────────────────────────────────────────
+function taKey(e,mode){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSend(mode);} }
+function taIn(e,mode){ taResize(e.target); signalTyping(mode); }
+function taResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
+
+// ─── Navigation ───────────────────────────────────────────────────
+let _tab='chats';
+function switchTab(tab){
+  _tab=tab;
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  const map={chats:'s-chats',contacts:'s-contacts',profile:'s-profile'};
+  showScreen(map[tab]);
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+function navBack(){
+  activeChat=null; activeGroup=null;
+  const map={chats:'s-chats',contacts:'s-contacts',profile:'s-profile'};
+  showScreen(map[_tab]||'s-chats');
+  renderChats(); renderContacts();
+}
+
+function openChat(cid){
+  const c=ME.contacts[cid]; if(!c) return;
+  activeChat=cid; activeGroup=null;
+  c.unread=0; save(); renderChats();
+  const cls=avCls(cid);
+  const av=document.getElementById('chat-av');
+  av.className=`av sm ${cls}`; av.textContent=c.alias.charAt(0).toUpperCase();
+  document.getElementById('chat-name').textContent=c.alias;
+  document.getElementById('chat-status').textContent='E2E krypterat';
+  document.getElementById('cmenu-name').textContent=c.alias;
+  document.getElementById('cmenu-id').textContent=cid;
+  renderChatMsgs();
+  showScreen('s-chat');
+  setTimeout(()=>{const w=document.getElementById('chat-msgs');if(w)w.scrollTop=w.scrollHeight;},60);
+}
+
+function openGroup(gid){
+  const g=ME.groups[gid]; if(!g) return;
+  activeGroup=gid; activeChat=null;
+  document.getElementById('grp-name-hdr').textContent=g.name;
+  updateGrpHdr();
+  renderGrpMsgs();
+  showScreen('s-group');
+  setTimeout(()=>{const w=document.getElementById('grp-msgs');if(w)w.scrollTop=w.scrollHeight;},60);
+}
+function updateGrpHdr(){
+  const g=ME.groups[activeGroup]; if(!g) return;
+  document.getElementById('grp-status-hdr').textContent=`${g.members.length} medl. · E2E krypterat`;
+  document.getElementById('gmenu-name').textContent=g.name;
+  document.getElementById('gmenu-info').textContent=`${g.members.length} medl. · Krypterat med gruppnyckel`;
+}
+
+// ─── Render lists ─────────────────────────────────────────────────
+function renderChats(){
+  const wrap=document.getElementById('chats-list'); if(!wrap) return;
+  const q=(document.getElementById('chats-search')?.value||'').toLowerCase();
+  const all=[
+    ...Object.values(ME.contacts).map(c=>({...c,_type:'dm',_last:c.messages[c.messages.length-1]})),
+    ...Object.values(ME.groups).map(g=>({...g,_type:'grp',_last:g.messages[g.messages.length-1]})),
+  ].filter(x=>!q||x.alias?.toLowerCase().includes(q)||x.name?.toLowerCase().includes(q))
+   .sort((a,b)=>(b._last?.ts||0)-(a._last?.ts||0));
+
+  if(!all.length){
+    wrap.innerHTML=`<div class="empty"><div class="empty-ico">💬</div><div>Inga chattar ännu</div><div style="font-size:12px;margin-top:4px;">Tryck + för att börja</div></div>`;
+    return;
+  }
+  wrap.innerHTML='';
+  all.forEach(x=>{
+    const isGrp=x._type==='grp';
+    const name=isGrp?x.name:x.alias;
+    const id=x.id;
+    const cls=isGrp?'av-grp':avCls(id);
+    const ico=isGrp?'👥':name.charAt(0).toUpperCase();
+    const prev=x._last?(x._last.own?'Du: ':'')+((x._last.text)||(x._last.msgType==='image'?'📷 Bild':'📎 Fil')):'';
+    const unread=x.unread||0;
+
+    const div=document.createElement('div');
+    div.className='chat-row';
+    div.innerHTML=`
+      <div class="av ${cls}">${ico}</div>
+      <div class="cr-info">
+        <div class="cr-name">${esc(name)}</div>
+        <div class="cr-prev">${esc(prev)||'<span style="color:var(--t3)">Ny chatt</span>'}</div>
+      </div>
+      <div class="cr-right">
+        ${x._last?`<div class="cr-time">${fmtTime(x._last.ts)}</div>`:''}
+        ${unread>0?`<div class="unread">${unread}</div>`:''}
+      </div>
+      <div class="del-btn" onclick="deleteChatItem('${id}','${x._type}',event)">🗑 Radera</div>`;
+    div.onclick=(e)=>{
+      if(e.target.classList.contains('del-btn')) return;
+      isGrp?openGroup(id):openChat(id);
+    };
+    // Swipe
+    let sx=0;
+    div.addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
+    div.addEventListener('touchend',e=>{
+      const dx=sx-e.changedTouches[0].clientX;
+      if(dx>60) div.classList.add('swiped');
+      else if(dx<-20) div.classList.remove('swiped');
+    });
+    wrap.appendChild(div);
+  });
+
+  // Update total unread badge
+  const totalUnread=Object.values(ME.contacts).reduce((s,c)=>s+(c.unread||0),0);
+  const badge=document.getElementById('nav-chats-badge');
+  if(badge){ badge.dataset.n=totalUnread>0?String(totalUnread):'0'; }
+}
+
+function renderContacts(){
+  const wrap=document.getElementById('contacts-list'); if(!wrap) return;
+  const q=(document.getElementById('contacts-search')?.value||'').toLowerCase();
+  const list=Object.values(ME.contacts).filter(c=>!q||c.alias.toLowerCase().includes(q)||c.id.includes(q));
+
+  if(!list.length){
+    wrap.innerHTML=`<div class="empty"><div class="empty-ico">👥</div><div>Inga kontakter</div><div style="font-size:12px;margin-top:4px;">Tryck + för att lägga till</div></div>`;
+    return;
+  }
+  wrap.innerHTML='';
+  list.forEach(c=>{
+    const div=document.createElement('div');
+    div.className='chat-row'; div.onclick=()=>openChat(c.id);
+    const cls=avCls(c.id);
+    div.innerHTML=`
+      <div class="av ${cls}">${c.alias.charAt(0).toUpperCase()}</div>
+      <div class="cr-info">
+        <div class="cr-name">${esc(c.alias)}</div>
+        <div class="cr-prev" style="font-family:monospace;font-size:11px;color:var(--t3)">${c.id.slice(0,20)}...</div>
+      </div>
+      <div class="cr-right"><div style="color:var(--t3);font-size:20px">›</div></div>`;
+    wrap.appendChild(div);
+  });
+
+  // Also update sh-new contacts
+  const sn=document.getElementById('sh-new-contacts');
+  if(sn){
+    sn.innerHTML='';
+    list.slice(0,8).forEach(c=>{
+      const cls=avCls(c.id);
+      const btn=document.createElement('button');
+      btn.className='ghost';
+      btn.innerHTML=`<span style="margin-right:10px" class="av sm ${cls}">${c.alias.charAt(0).toUpperCase()}</span>${esc(c.alias)}`;
+      btn.onclick=()=>{ closeSheet('sh-new'); openChat(c.id); };
+      sn.appendChild(btn);
+    });
+  }
+}
+
+// ─── Chat actions ─────────────────────────────────────────────────
+function deleteChatItem(id,type,e){
+  e.stopPropagation();
+  if(!confirm('Radera denna chatt?')) return;
+  if(type==='dm') delete ME.contacts[id];
+  else delete ME.groups[id];
+  save(); renderChats(); renderContacts();
+}
+function clearChatHistory(){
+  if(!activeChat) return;
+  if(!confirm('Rensa all chatthistorik?')) return;
+  ME.contacts[activeChat].messages=[]; save();
+  document.getElementById('chat-msgs').innerHTML='';
+  closeSheet('sh-chat-menu'); renderChats();
+  toast('Historik rensad');
+}
+function clearGroupHistory(){
+  if(!activeGroup) return;
+  if(!confirm('Rensa grupphistorik?')) return;
+  ME.groups[activeGroup].messages=[]; save();
+  document.getElementById('grp-msgs').innerHTML='';
+  closeSheet('sh-grp-menu'); renderChats();
+  toast('Grupphistorik rensad');
+}
+function copyCmenuId(){ copyText(activeChat||''); closeSheet('sh-chat-menu'); }
+function deleteCurrentContact(){
+  if(!activeChat) return;
+  if(!confirm('Ta bort kontakten?')) return;
+  delete ME.contacts[activeChat]; save();
+  closeSheet('sh-chat-menu'); navBack(); renderChats(); renderContacts();
+  toast('Kontakt borttagen');
+}
+
+// ─── Settings ─────────────────────────────────────────────────────
+function regenAlias(id){ document.getElementById(id).value=rndAlias(); }
+
+async function confirmRename(){
+  const v=document.getElementById('rename-inp').value.trim();
+  if(!v) return toast('Ange ett alias');
+  ME.alias=v; save(); updateProfileUI(); closeSheet('sh-rename'); toast('Alias ändrat');
+  for(const cid of Object.keys(ME.contacts)){
+    await dmSend(cid,{type:'RENAME',newAlias:v}).catch(()=>{});
+  }
+}
+
+function setTimer(btn){
+  const val=parseInt(btn.dataset.val);
+  ME.msgTimer=val; save();
+  document.getElementById('prof-timer-lbl').textContent=fmtTimer(val)||'Av';
+  closeSheet('sh-timer'); toast('Timer uppdaterad');
+}
+
+function copyMyId(){ copyText(ME.id); }
+
+function updateProfileUI(){
+  const a=ME.alias.charAt(0).toUpperCase();
+  const nameEl=document.getElementById('prof-name');
+  const avEl=document.getElementById('prof-av-letter');
+  const idEl=document.getElementById('prof-id');
+  const idShort=document.getElementById('prof-id-short');
+  const timerLbl=document.getElementById('prof-timer-lbl');
+  if(nameEl) nameEl.textContent=ME.alias;
+  if(avEl) avEl.textContent=a;
+  if(idEl) idEl.textContent=ME.id;
+  if(idShort) idShort.textContent=ME.id.slice(0,24)+'...';
+  if(timerLbl) timerLbl.textContent=fmtTimer(ME.msgTimer)||'Av';
+}
+
+function clearAllChats(){
+  if(!confirm('Rensa ALLA chattar? Kan inte ångras.')) return;
+  Object.values(ME.contacts).forEach(c=>c.messages=[]);
+  Object.values(ME.groups).forEach(g=>g.messages=[]);
+  save(); renderChats(); toast('Alla chattar rensade');
+}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify({id:ME.id,alias:ME.alias,contacts:Object.keys(ME.contacts),groups:Object.keys(ME.groups)},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='libra-export.json';a.click();
+  toast('Data exporterad');
+}
+
+function deleteAccount(){
+  if(!confirm('Radera ALLT — konto, kontakter, meddelanden? Detta kan inte ångras.')) return;
+  if(!confirm('Är du säker? Allt raderas permanent.')) return;
+  localStorage.removeItem('_libra6');
+  location.reload();
+}
+
+function showPwaGuide(){ openSheet('sh-pwa'); }
+function showVpnInfo(){ openSheet('sh-vpn'); }
+
+// ─── Token countdown ──────────────────────────────────────────────
+function startTokenTimer(elId, secs){
+  let r=secs;
+  const iv=setInterval(()=>{
+    r--;
+    const el=document.getElementById(elId);
+    if(el) el.textContent=`Giltig ${fmtTimer(r)} · engångsanvändning`;
+    if(r<=0){ clearInterval(iv); if(el) el.textContent='Koden har löpt ut'; }
+  },1000);
+}
+
+// ─── Voice calls ──────────────────────────────────────────────────
+let localStream=null, peerConn=null, callCid=null, callTiv=null, callSecs=0, isMuted=false, incCallData=null;
+
+const TURN_SERVERS=[
+  {urls:'stun:stun.l.google.com:19302'},
+  {urls:'stun:stun1.l.google.com:19302'},
+  {urls:'stun:stun.cloudflare.com:3478'},
+  // Free TURN via Metered.ca public credentials
+  {urls:'turn:a.relay.metered.ca:80',username:'e8dd65f0a1a4e4f4bfd6',credential:'uRhQzHQdqmH9CNMF'},
+  {urls:'turn:a.relay.metered.ca:443',username:'e8dd65f0a1a4e4f4bfd6',credential:'uRhQzHQdqmH9CNMF'},
+  {urls:'turns:a.relay.metered.ca:443',username:'e8dd65f0a1a4e4f4bfd6',credential:'uRhQzHQdqmH9CNMF'},
+];
+
+function newPeerConn(){
+  const pc=new RTCPeerConnection({iceServers:TURN_SERVERS,iceCandidatePoolSize:10});
+  pc.ontrack=e=>{
+    const audio=document.getElementById('call-audio');
+    if(audio) audio.srcObject=e.streams[0];
+  };
+  pc.onicecandidate=async e=>{
+    if(e.candidate&&callCid){
+      const key=await dmKey(callCid);
+      const enc=await encObj({type:'WEBRTC_ICE',candidate:e.candidate},key);
+      wsSend({type:'WEBRTC_ICE',to:callCid,from:ME.id,enc});
+    }
+  };
+  pc.onconnectionstatechange=()=>{
+    const st=pc.connectionState;
+    const el=document.getElementById('call-status');
+    if(el){
+      if(st==='connected'){ el.style.display='none'; document.getElementById('call-timer').style.display='block'; startCallTimer(); }
+      else if(st==='failed'||st==='disconnected') endCall(false);
+    }
+  };
+  return pc;
+}
+
+async function startCall(){
+  if(!activeChat) return;
+  callCid=activeChat;
+  try{ localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false}); }
+  catch(e){ toast('Kan inte komma åt mikrofon: '+e.message); return; }
+  peerConn=newPeerConn();
+  localStream.getTracks().forEach(t=>peerConn.addTrack(t,localStream));
+  const offer=await peerConn.createOffer({offerToReceiveAudio:true});
+  await peerConn.setLocalDescription(offer);
+  const key=await dmKey(callCid);
+  const enc=await encObj({type:'WEBRTC_OFFER',sdp:peerConn.localDescription,alias:ME.alias},key);
+  wsSend({type:'WEBRTC_OFFER',to:callCid,from:ME.id,enc});
+  const c=ME.contacts[callCid];
+  showCallView(c?c.alias:'?','Ringer...',avCls(callCid));
+}
+
+async function onCallSignal(raw){
+  const key=await dmKey(raw.from);
+  const msg=await decObj(raw.enc,key);
+  if(!msg) return;
+  if(msg.type==='WEBRTC_OFFER'){
+    incCallData={from:raw.from,sdp:msg.sdp,alias:msg.alias||raw.from.slice(0,8)};
+    document.getElementById('inc-av').textContent=(msg.alias||'?').charAt(0).toUpperCase();
+    document.getElementById('inc-name').textContent=msg.alias||'Okänd';
+    openSheet('sh-incoming');
+  } else if(msg.type==='WEBRTC_ANSWER'&&peerConn){
+    try{ await peerConn.setRemoteDescription(new RTCSessionDescription(msg.sdp)); }catch(e){ console.warn(e); }
+  } else if(msg.type==='WEBRTC_ICE'&&peerConn){
+    try{ await peerConn.addIceCandidate(new RTCIceCandidate(msg.candidate)); }catch(e){ console.warn(e); }
+  } else if(msg.type==='CALL_END'){
+    endCall(true);
+  }
+}
+
+async function acceptCall(){
+  closeSheet('sh-incoming');
+  if(!incCallData) return;
+  callCid=incCallData.from;
+  try{ localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false}); }
+  catch(e){ toast('Mikrofon ej tillgänglig'); return; }
+  peerConn=newPeerConn();
+  localStream.getTracks().forEach(t=>peerConn.addTrack(t,localStream));
+  try{
+    await peerConn.setRemoteDescription(new RTCSessionDescription(incCallData.sdp));
+    const answer=await peerConn.createAnswer();
+    await peerConn.setLocalDescription(answer);
+    const key=await dmKey(callCid);
+    const enc=await encObj({type:'WEBRTC_ANSWER',sdp:peerConn.localDescription},key);
+    wsSend({type:'WEBRTC_ANSWER',to:callCid,from:ME.id,enc});
+    showCallView(incCallData.alias,'Ansluter...',avCls(callCid));
+  }catch(e){ toast('Fel vid anslutning: '+e.message); }
+  incCallData=null;
+}
+
+function rejectCall(){
+  closeSheet('sh-incoming');
+  if(incCallData){
+    dmSend(incCallData.from,{type:'CALL_END'}).catch(()=>{});
+    incCallData=null;
+  }
+}
+
+function showCallView(name,status,avClass){
+  const av=document.getElementById('call-av');
+  av.className=`call-av ${avClass||'av-b'}`;
+  av.textContent=name.charAt(0).toUpperCase();
+  document.getElementById('call-name').textContent=name;
+  document.getElementById('call-status').textContent=status;
+  document.getElementById('call-status').style.display='block';
+  document.getElementById('call-timer').style.display='none';
+  showScreen('s-call');
+}
+
+function startCallTimer(){
+  callSecs=0; clearInterval(callTiv);
+  callTiv=setInterval(()=>{
+    callSecs++;
+    const m=String(Math.floor(callSecs/60)).padStart(2,'0');
+    const s=String(callSecs%60).padStart(2,'0');
+    document.getElementById('call-timer').textContent=m+':'+s;
+  },1000);
+}
+
+function endCall(remote){
+  if(!remote&&callCid) dmSend(callCid,{type:'CALL_END'}).catch(()=>{});
+  if(peerConn){ peerConn.close(); peerConn=null; }
+  if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
+  clearInterval(callTiv); callCid=null; isMuted=false;
+  document.getElementById('mute-btn').textContent='🎤';
+  document.getElementById('mute-btn').style.background='var(--s3)';
+  const prev=activeChat?'s-chat':activeGroup?'s-group':'s-chats';
+  showScreen(prev);
+}
+
+function toggleMute(){
+  isMuted=!isMuted;
+  if(localStream) localStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);
+  const btn=document.getElementById('mute-btn');
+  btn.textContent=isMuted?'🔇':'🎤';
+  btn.style.background=isMuted?'rgba(255,59,48,.35)':'var(--s3)';
+}
+function toggleSpeaker(){
+  const btn=document.getElementById('spk-btn');
+  const on=btn.style.background.includes('35');
+  btn.style.background=on?'var(--s3)':'rgba(52,199,89,.35)';
+  toast(on?'Högtalare av':'Högtalare på');
+}
+
+// ─── Sheets ───────────────────────────────────────────────────────
+function openSheet(id){ document.getElementById(id)?.classList.add('open'); }
+function closeSheet(id){ document.getElementById(id)?.classList.remove('open'); }
+function bgClose(e,id){ if(e.target===e.currentTarget) closeSheet(id); }
+
+// ─── Lightbox ─────────────────────────────────────────────────────
+function openLightbox(src){ document.getElementById('lb-img').src=src; document.getElementById('lightbox').classList.add('open'); }
+function closeLightbox(){ document.getElementById('lightbox').classList.remove('open'); }
+
+// ─── PWA / Service Worker ─────────────────────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// ─── Boot ─────────────────────────────────────────────────────────
+function boot(){
+  document.getElementById('ob-alias').value=ME.alias;
+  document.getElementById('ob-myid').textContent=ME.id;
+
+  document.getElementById('ob-btn').addEventListener('click',()=>{
+    const alias=document.getElementById('ob-alias').value.trim()||rndAlias();
+    ME.alias=alias; ME.started=true; save();
+    launch();
+  });
+
+  if(ME.started) launch();
+}
+
+function launch(){
+  document.getElementById('bottom-nav').style.display='flex';
+  updateProfileUI();
+  wsConnect();
+  showScreen('s-chats');
+  document.getElementById('s-onboard').classList.remove('on');
+  renderChats(); renderContacts();
+}
+
+// Ping relay every 25s to keep alive (prevents Render sleep)
+setInterval(()=>{ if(ws&&ws.readyState===1) wsSend({type:'PING'}); },25000);
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('bottom-nav').style.display='none';
+  boot();
+});
+</script>
+</body>
+</html>
