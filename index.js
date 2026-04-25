@@ -1,117 +1,90 @@
+// LibraOS-4677 — Relay Server v4
+// Only routes encrypted blobs. Never sees content, passwords, or keys.
+'use strict';
 const http = require('http');
 const { WebSocketServer } = require('ws');
 
-const server = http.createServer((req, res) => {
-  res.end('LibraOS relay running');
+const server = http.createServer((_, res) => {
+  res.writeHead(200); res.end('LibraOS relay v4 — OK');
 });
-
 const wss = new WebSocketServer({ server });
 
-const clients = new Map();
-const tokens = new Map();
-const groups = new Map();
+const clients   = new Map(); // clientId  → ws
+const groups    = new Map(); // groupId   → Set<clientId>
+const tokens    = new Map(); // token     → entry
 
-wss.on('connection', (ws) => {
-  let id = null;
+function groupJoin(gid, id)  { if (!groups.has(gid)) groups.set(gid, new Set()); groups.get(gid).add(id); }
+function groupLeave(gid, id) { const r = groups.get(gid); if (r) { r.delete(id); if (!r.size) groups.delete(gid); } }
+function groupLeaveAll(id)   { for (const [gid] of groups) groupLeave(gid, id); }
+function groupcast(gid, from, payload) {
+  const r = groups.get(gid); if (!r) return;
+  const out = JSON.stringify(payload);
+  for (const mid of r) { if (mid === from) continue; const c = clients.get(mid); if (c && c.readyState === 1) c.send(out); }
+}
+function dm(toId, payload) {
+  const c = clients.get(toId); if (c && c.readyState === 1) { c.send(JSON.stringify(payload)); return true; } return false;
+}
 
-  ws.on('message', (data) => {
-    let msg;
-    try { msg = JSON.parse(data); } catch { return; }
+wss.on('connection', ws => {
+  let myId = null;
 
-    switch (msg.type) {
+  ws.on('message', raw => {
+    let m; try { m = JSON.parse(raw); } catch { return; }
+    switch (m.type) {
 
       case 'REGISTER':
-        id = msg.id;
-        clients.set(id, ws);
+        myId = m.clientId;
+        clients.set(myId, ws);
+        ws.send(JSON.stringify({ type: 'REGISTERED' }));
         break;
 
       case 'DM':
-        const target = clients.get(msg.to);
-        if (target) target.send(JSON.stringify(msg));
+        if (!dm(m.to, { type: 'DM', from: m.from, enc: m.enc }))
+          ws.send(JSON.stringify({ type: 'OFFLINE', targetId: m.to }));
         break;
 
-      case 'CONTACT_REQUEST': {
-        const t = clients.get(msg.to);
-        if (t) t.send(JSON.stringify(msg));
+      case 'GROUP_JOIN':
+        if (myId && m.groupId) groupJoin(m.groupId, myId);
         break;
-      }
 
-      case 'CONTACT_ACCEPT': {
-        const t = clients.get(msg.to);
-        if (t) t.send(JSON.stringify(msg));
+      case 'GROUP_LEAVE':
+        if (myId && m.groupId) groupLeave(m.groupId, myId);
         break;
-      }
 
-      case 'GROUP_CREATE':
-        groups.set(msg.groupId, {
-          members: [msg.creator],
-          key: msg.key
+      case 'GROUP_MSG':
+        groupcast(m.groupId, m.from, { type: 'GROUP_MSG', groupId: m.groupId, from: m.from, enc: m.enc });
+        break;
+
+      case 'CREATE_INVITE':
+        tokens.set(m.token, {
+          fromId: m.fromId, fromAlias: m.fromAlias,
+          groupId: m.groupId || null, groupName: m.groupName || null,
+          expires: Date.now() + 10 * 60 * 1000,
         });
+        ws.send(JSON.stringify({ type: 'INVITE_CREATED', token: m.token }));
         break;
 
-      case 'GROUP_JOIN': {
-        const g = groups.get(msg.groupId);
-        if (!g) return;
-
-        g.members.push(msg.user);
-        g.members.forEach(m => {
-          if (m !== msg.user) {
-            const t = clients.get(m);
-            if (t) t.send(JSON.stringify(msg));
-          }
-        });
+      case 'REDEEM_INVITE': {
+        const e = tokens.get(m.token);
+        if (!e) { ws.send(JSON.stringify({ type: 'INVITE_INVALID', reason: 'not_found' })); break; }
+        if (Date.now() > e.expires) { tokens.delete(m.token); ws.send(JSON.stringify({ type: 'INVITE_INVALID', reason: 'expired' })); break; }
+        tokens.delete(m.token);
+        ws.send(JSON.stringify({ type: 'INVITE_REDEEMED', fromId: e.fromId, fromAlias: e.fromAlias, groupId: e.groupId, groupName: e.groupName, redeemerId: m.myId, redeemerAlias: m.myAlias }));
+        dm(e.fromId, { type: 'INVITE_ACCEPTED', redeemerId: m.myId, redeemerAlias: m.myAlias, groupId: e.groupId });
         break;
       }
 
-      case 'GROUP_MSG': {
-        const g = groups.get(msg.groupId);
-        if (!g) return;
-
-        g.members.forEach(m => {
-          if (m !== msg.from) {
-            const t = clients.get(m);
-            if (t) t.send(JSON.stringify(msg));
-          }
-        });
+      case 'PING':
+        ws.send(JSON.stringify({ type: 'PONG' }));
         break;
-      }
-
-      case 'TOKEN_CREATE':
-        tokens.set(msg.token, {
-          from: msg.from,
-          data: msg.data,
-          exp: Date.now() + 600000
-        });
-        break;
-
-      case 'TOKEN_REDEEM': {
-        const t = tokens.get(msg.token);
-        if (!t || Date.now() > t.exp) return;
-
-        tokens.delete(msg.token);
-
-        const target = clients.get(t.from);
-        if (target) {
-          target.send(JSON.stringify({
-            type: 'TOKEN_OK',
-            from: msg.from,
-            data: t.data
-          }));
-        }
-        break;
-      }
-
-      case 'CALL_SIGNAL': {
-        const t = clients.get(msg.to);
-        if (t) t.send(JSON.stringify(msg));
-        break;
-      }
     }
   });
 
-  ws.on('close', () => {
-    if (id) clients.delete(id);
-  });
+  ws.on('close', () => { if (myId) { clients.delete(myId); groupLeaveAll(myId); } });
+  ws.on('error', () => { if (myId) { clients.delete(myId); groupLeaveAll(myId); } });
 });
 
-server.listen(process.env.PORT || 3000);
+setInterval(() => { const n = Date.now(); for (const [t, e] of tokens) if (n > e.expires) tokens.delete(t); }, 3 * 60 * 1000);
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log('LibraOS relay v4 on :%d', PORT));
