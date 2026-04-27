@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LibraOS">
@@ -10,242 +10,287 @@
 <link rel="manifest" href="manifest.json">
 <title>LibraOS-4677</title>
 <style>
-/* ════════════════════════════════════════════════════════
-   TOKENS & RESET
-════════════════════════════════════════════════════════ */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-input,textarea,select{-webkit-user-select:text;user-select:text}
+/* ═══════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════ */
 :root{
   --bg:#0c0c0f;
-  --s1:#131317;--s2:#1a1a1f;--s3:#222228;--s4:#2b2b32;--s5:#34343d;
-  --b1:#1e1e24;--b2:#2a2a32;--b3:#3c3c48;
-  --t1:#eaeaf0;--t2:#8080a0;--t3:#48485e;--t4:#28283a;
-  --acc:#2f7ff5;--acc2:#1a6ae0;--acc3:rgba(47,127,245,.15);--acc4:rgba(47,127,245,.08);
-  --grn:#2dd36f;--red:#ff453a;--ylw:#ffd60a;--prp:#a060f8;--teal:#32d4e8;--pink:#e84090;
-  --own:#163368;--other:#1a1a1f;
-  --nav-h:54px;
-  --st:env(safe-area-inset-top,0px);
-  --sb:env(safe-area-inset-bottom,0px);
+  --s1:#141418;--s2:#1c1c21;--s3:#242429;--s4:#2e2e35;--s5:#38383f;
+  --b1:#1e1e24;--b2:#2c2c34;--b3:#3e3e48;
+  --t1:#eaeaf0;--t2:#7878a0;--t3:#44445a;--t4:#26263a;
+  --acc:#2f7ff5;--acc2:#1a6ae0;--acc3:rgba(47,127,245,.14);--acc4:rgba(47,127,245,.07);
+  --grn:#30d068;--red:#ff4545;--ylw:#ffc900;--prp:#9858f5;--teal:#28cee0;
+  --own:#163068;--other:#1c1c21;
+  --nav-h:56px;
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
+  --radius-msg:18px;
+  --anim:cubic-bezier(.32,1,.23,1);
 }
-html,body{height:100%;height:100dvh;background:var(--bg);color:var(--t1);
+/* Dark blue theme */
+body.theme-navy{ --bg:#0a1628; --s1:#0e1f38; --s2:#132744; --s3:#1a3257; --b1:#193050; --b2:#254270; --own:#0f3060; --other:#132744; }
+/* Light theme */
+body.theme-light{ --bg:#f0f0f5; --s1:#ffffff; --s2:#f2f2f7; --s3:#e8e8f0; --s4:#dcdce8; --b1:#dcdce8; --b2:#c8c8d8; --t1:#0a0a1a; --t2:#44446a; --t3:#88889a; --t4:#c0c0d0; --own:#2f7ff5; --other:#ffffff; }
+body.theme-light .mr.own .bub{color:#fff;}
+body.theme-light .mr.other .bub{color:#0a0a1a;}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+input,textarea{-webkit-user-select:text;user-select:text}
+html{height:100%;height:100dvh;background:var(--bg)}
+body{height:100%;height:100dvh;background:var(--bg);color:var(--t1);
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;
   font-size:15px;line-height:1.4;overflow:hidden;-webkit-font-smoothing:antialiased}
 
-/* ════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════
    APP SHELL
-════════════════════════════════════════════════════════ */
+═══════════════════════════════════════ */
 #app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
 #vp{flex:1;position:relative;overflow:hidden;min-height:0}
-.sc{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg);overflow:hidden}
+.sc{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg);overflow:hidden;
+  transition:transform .28s var(--anim),opacity .2s ease;transform:translateX(0)}
 .sc.on{display:flex}
+.sc.slide-in{animation:slideIn .28s var(--anim) forwards}
+.sc.slide-out{animation:slideOut .24s ease forwards}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes slideOut{from{transform:translateX(0)}to{transform:translateX(100%)}}
 
-/* ════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════
    BOTTOM NAV
-════════════════════════════════════════════════════════ */
+═══════════════════════════════════════ */
 #bnav{display:none;background:var(--s1);border-top:1px solid var(--b1);
   padding:6px 0 calc(var(--sb)+4px);flex-shrink:0}
 #bnav.vis{display:flex}
 .nt{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
   border:none;background:none;color:var(--t3);cursor:pointer;padding:4px 0;
   font-size:10px;letter-spacing:.02em;font-family:inherit;transition:color .15s;position:relative}
-.nt .ico{font-size:23px;line-height:1}
+.nt .ico{font-size:24px;line-height:1;transition:transform .15s}
 .nt.act{color:var(--acc)}
-.nbadge{position:absolute;top:-1px;right:calc(50% - 20px);min-width:17px;height:17px;
+.nt.act .ico{transform:scale(1.1)}
+.nbadge{position:absolute;top:0;right:calc(50% - 22px);min-width:17px;height:17px;
   padding:0 4px;background:var(--red);border-radius:9px;font-size:10px;font-weight:700;
   color:#fff;display:none;align-items:center;justify-content:center;border:2px solid var(--bg)}
 .nbadge.on{display:flex}
 
-/* ════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════
    TOP BAR
-════════════════════════════════════════════════════════ */
+═══════════════════════════════════════ */
 .topbar{display:flex;align-items:center;gap:6px;
   padding:calc(var(--st)+10px) 14px 10px;
   background:var(--s1);border-bottom:1px solid var(--b1);flex-shrink:0;min-height:54px}
-.tb-title{font-size:18px;font-weight:700;letter-spacing:-.3px;flex:1;
+.tb-t{font-size:18px;font-weight:700;letter-spacing:-.3px;flex:1;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tb-sub{font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-s{font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
 .ib{width:36px;height:36px;border:none;background:none;color:var(--t2);
   font-size:22px;display:flex;align-items:center;justify-content:center;
-  border-radius:50%;cursor:pointer;flex-shrink:0;transition:background .12s}
-.ib:active{background:var(--s3)}
+  border-radius:50%;cursor:pointer;flex-shrink:0;transition:background .12s,transform .1s}
+.ib:active{background:var(--s3);transform:scale(.9)}
 .ib.back{font-size:30px;margin-left:-8px}
 
-/* ════════════════════════════════════════════════════════
-   COMMON UI ELEMENTS
-════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════
+   COMMON
+═══════════════════════════════════════ */
 .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .scroll::-webkit-scrollbar{display:none}
 .fi{width:100%;padding:12px 14px;background:var(--s2);border:1.5px solid var(--b1);
-  border-radius:10px;color:var(--t1);font-size:15px;outline:none;font-family:inherit;
-  transition:border-color .15s;-webkit-appearance:none;appearance:none}
-.fi:focus{border-color:var(--acc)}
+  border-radius:14px;color:var(--t1);font-size:15px;outline:none;font-family:inherit;
+  transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;appearance:none}
+.fi:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(47,127,245,.12)}
 .fi::placeholder{color:var(--t3)}
-.fi.mono{font-family:'SF Mono','Courier New',monospace;font-size:12px;color:var(--acc);letter-spacing:.03em}
+.fi.mono{font-family:'SF Mono',monospace;font-size:12px;color:var(--acc);letter-spacing:.03em}
 .field{margin-bottom:16px}
 .lbl{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:7px}
-.primary{width:100%;padding:14px;background:var(--acc);border:none;border-radius:10px;
+.primary{width:100%;padding:14px;background:var(--acc);border:none;border-radius:14px;
   color:#fff;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;
-  transition:background .12s,transform .1s;margin-top:4px}
-.primary:active{background:var(--acc2);transform:scale(.97)}
+  transition:background .12s,transform .12s,box-shadow .12s;margin-top:4px;
+  box-shadow:0 4px 16px rgba(47,127,245,.3)}
+.primary:active{background:var(--acc2);transform:scale(.97);box-shadow:none}
 .primary:disabled{opacity:.5;pointer-events:none}
-.ghost{display:block;width:100%;padding:13px 14px;background:var(--s2);
-  border:1.5px solid var(--b2);border-radius:10px;color:var(--t2);font-size:15px;
-  font-weight:500;cursor:pointer;font-family:inherit;transition:all .12s;
+.ghost{display:block;width:100%;padding:13px 15px;background:var(--s2);
+  border:1.5px solid var(--b1);border-radius:14px;color:var(--t2);font-size:15px;
+  font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;
   text-align:left;margin-bottom:8px}
-.ghost:active{background:var(--s3);color:var(--t1)}
+.ghost:active{background:var(--s3);color:var(--t1);transform:scale(.98)}
 .ghost.a{color:var(--acc);background:var(--acc4);border-color:rgba(47,127,245,.28)}
 .ghost.r{color:var(--red);background:rgba(255,69,58,.08);border-color:rgba(255,69,58,.22)}
-.ghost.g{color:var(--grn);background:rgba(45,211,111,.08);border-color:rgba(45,211,111,.22)}
+.ghost.g{color:var(--grn);background:rgba(48,208,104,.08);border-color:rgba(48,208,104,.22)}
 .hr{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--t3);font-size:11px;letter-spacing:.06em}
 .hr::before,.hr::after{content:'';flex:1;height:1px;background:var(--b1)}
 .alias-row{display:flex;gap:8px}
 .regen-btn{width:46px;height:46px;flex-shrink:0;background:var(--s2);border:1.5px solid var(--b1);
-  border-radius:10px;color:var(--t2);font-size:20px;cursor:pointer;
+  border-radius:14px;color:var(--t2);font-size:20px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;transition:all .12s}
-.regen-btn:active{color:var(--t1);background:var(--s3)}
+.regen-btn:active{color:var(--t1);transform:rotate(180deg)}
 .av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;letter-spacing:-.5px}
-.av.sm{width:36px;height:36px;font-size:14px}
+  justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.av.sm{width:38px;height:38px;font-size:15px}
 .av.lg{width:72px;height:72px;font-size:28px}
 .av0{background:rgba(47,127,245,.18);color:#5a9cf8}
-.av1{background:rgba(45,211,111,.14);color:#2dd36f}
+.av1{background:rgba(48,208,104,.14);color:#30d068}
 .av2{background:rgba(255,159,10,.14);color:#ff9f0a}
-.av3{background:rgba(160,96,248,.16);color:#a060f8}
-.av4{background:rgba(255,69,58,.14);color:#ff453a}
-.av5{background:rgba(50,212,232,.14);color:#32d4e8}
-.avG{background:rgba(160,96,248,.18);color:#a060f8}
+.av3{background:rgba(152,88,245,.16);color:#9858f5}
+.av4{background:rgba(255,69,58,.14);color:#ff4545}
+.av5{background:rgba(40,206,224,.14);color:#28cee0}
+.avG{background:rgba(152,88,245,.18);color:#9858f5}
 .id-box{padding:12px 14px;background:var(--s2);border:1.5px solid var(--b1);
-  border-radius:10px;display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.id-val{font-family:'SF Mono','Courier New',monospace;font-size:11px;color:var(--acc);
+  border-radius:14px;display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.id-val{font-family:'SF Mono',monospace;font-size:11px;color:var(--acc);
   flex:1;word-break:break-all;letter-spacing:.03em;line-height:1.5}
-.copy-btn{padding:7px 12px;background:var(--s3);border:1px solid var(--b3);
-  border-radius:7px;color:var(--t2);font-size:12px;cursor:pointer;
+.copy-btn{padding:7px 13px;background:var(--s3);border:1px solid var(--b3);
+  border-radius:9px;color:var(--t2);font-size:12px;cursor:pointer;
   white-space:nowrap;font-family:inherit;transition:all .12s;flex-shrink:0}
-.copy-btn:active{color:var(--t1);background:var(--s4)}
-.card{background:var(--s1);border-radius:12px;border:1px solid var(--b1);overflow:hidden;margin-bottom:14px}
-.cr{display:flex;align-items:center;gap:12px;padding:13px 14px;
-  border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s}
+.copy-btn:active{color:var(--t1);transform:scale(.95)}
+.card{background:var(--s1);border-radius:18px;border:1px solid var(--b1);overflow:hidden;margin-bottom:14px}
+.cr{display:flex;align-items:center;gap:12px;padding:13px 15px;
+  border-bottom:1px solid var(--b1);cursor:pointer;transition:background .12s}
 .cr:last-child{border-bottom:none}
 .cr:active{background:var(--s2)}
-.cr-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.cr-ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
 .cr-info{flex:1;min-width:0}
 .cr-label{font-size:15px;color:var(--t1)}
 .cr-val{font-size:12px;color:var(--t3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cr-arr{color:var(--t3);font-size:20px;flex-shrink:0}
 .sec{padding:20px 16px 0}
-.sec-title{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:10px}
+.sec-t{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:10px}
 .hint{font-size:12px;color:var(--t3);margin-top:7px;line-height:1.6}
 .pw-wrap{position:relative}
-.pw-wrap .fi{padding-right:44px}
+.pw-wrap .fi{padding-right:46px}
 .pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);
-  background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer;padding:4px}
+  background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer;padding:4px;transition:color .12s}
+.pw-eye:active{color:var(--t1)}
 .token-box{padding:12px 14px;background:var(--s2);border:1.5px solid var(--b1);
-  border-radius:10px;display:flex;align-items:center;gap:10px;margin-bottom:5px}
-.token-val{font-family:'SF Mono','Courier New',monospace;font-size:11px;color:var(--acc);
+  border-radius:14px;display:flex;align-items:center;gap:10px;margin-bottom:5px}
+.token-val{font-family:'SF Mono',monospace;font-size:11px;color:var(--acc);
   flex:1;word-break:break-all;letter-spacing:.03em;line-height:1.5}
 .token-exp{font-size:11px;color:var(--t3);margin-bottom:12px}
 .enc-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
-  background:rgba(45,211,111,.1);border:1px solid rgba(45,211,111,.22);
+  background:rgba(48,208,104,.1);border:1px solid rgba(48,208,104,.22);
   border-radius:20px;font-size:10px;color:var(--grn);letter-spacing:.07em}
-.enc-pulse{width:6px;height:6px;border-radius:50%;background:var(--grn);animation:ep 2s infinite}
+.enc-dot{width:6px;height:6px;border-radius:50%;background:var(--grn);animation:ep 2s infinite}
 @keyframes ep{0%,100%{opacity:1}50%{opacity:.2}}
-.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;transition:background .4s}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;transition:background .5s}
 .conn-dot.ok{background:var(--grn)}
 /* Key status banner */
 .keybanner{display:flex;align-items:center;gap:8px;padding:7px 14px;
-  background:rgba(45,211,111,.07);border-bottom:1px solid rgba(45,211,111,.14);
-  font-size:11px;color:var(--grn);flex-shrink:0;letter-spacing:.04em}
-.keybanner.pending{background:rgba(255,215,10,.07);border-bottom-color:rgba(255,215,10,.14);color:var(--ylw)}
+  background:rgba(48,208,104,.07);border-bottom:1px solid rgba(48,208,104,.14);
+  font-size:11px;color:var(--grn);flex-shrink:0;letter-spacing:.03em}
+.keybanner.pend{background:rgba(255,201,0,.07);border-bottom-color:rgba(255,201,0,.14);color:var(--ylw)}
 
-/* ════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════
    ONBOARDING
-════════════════════════════════════════════════════════ */
-#s-ob{align-items:center;justify-content:center;padding:28px 22px;overflow-y:auto}
-.ob-card{width:100%;max-width:400px}
+═══════════════════════════════════════ */
+#s-ob{align-items:center;justify-content:center;padding:28px 22px;overflow-y:auto;background:var(--bg)}
+.ob-wrap{width:100%;max-width:400px}
 .ob-logo{display:flex;align-items:center;gap:16px;margin-bottom:32px}
-.ob-icon{width:64px;height:64px;background:var(--acc);border-radius:20px;
-  display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0;
-  box-shadow:0 8px 32px rgba(47,127,245,.4)}
+.ob-icon{width:64px;height:64px;background:linear-gradient(135deg,#2f7ff5,#8040f8);
+  border-radius:22px;display:flex;align-items:center;justify-content:center;
+  font-size:30px;flex-shrink:0;box-shadow:0 8px 32px rgba(47,127,245,.4)}
 .ob-name{font-size:26px;font-weight:800;letter-spacing:-.5px}
 .ob-sub{font-size:13px;color:var(--t3);margin-top:3px}
 .ob-feats{display:flex;flex-direction:column;gap:10px;margin:20px 0 26px}
 .ob-feat{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--t2)}
-.ob-f-ico{width:32px;height:32px;border-radius:8px;font-size:16px;
+.ob-f-i{width:34px;height:34px;border-radius:10px;font-size:16px;
   display:flex;align-items:center;justify-content:center;flex-shrink:0}
 
-/* ════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════
    CHAT LIST
-════════════════════════════════════════════════════════ */
+═══════════════════════════════════════ */
 #s-chats{background:var(--bg)}
 .sbar{padding:10px 12px;background:var(--s1);border-bottom:1px solid var(--b1);flex-shrink:0}
 .sinp{width:100%;padding:9px 14px 9px 36px;background:var(--s2);border:none;
-  border-radius:10px;color:var(--t1);font-size:15px;outline:none;font-family:inherit;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2348485e' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z'/%3E%3C/svg%3E");
+  border-radius:12px;color:var(--t1);font-size:15px;outline:none;font-family:inherit;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2344445a' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:11px center;-webkit-appearance:none}
 .sinp::placeholder{color:var(--t3)}
-.ci{display:flex;align-items:center;gap:12px;padding:11px 14px;
+/* Chat list items */
+.ci{display:flex;align-items:center;gap:12px;padding:10px 14px;
   cursor:pointer;border-bottom:1px solid var(--b1);position:relative;overflow:hidden;
-  transition:background .1s;-webkit-user-select:none;user-select:none}
+  -webkit-user-select:none;user-select:none;transition:background .1s}
 .ci:active{background:var(--s1)}
 .ci-info{flex:1;min-width:0}
 .ci-name{font-size:16px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ci-prev{font-size:13px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ci-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.ci-r{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
 .ci-time{font-size:12px;color:var(--t3)}
 .unread{min-width:20px;height:20px;padding:0 5px;background:var(--acc);border-radius:10px;
   font-size:11px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center}
-.ci-del{position:absolute;right:0;top:0;bottom:0;width:80px;background:var(--red);
-  display:flex;align-items:center;justify-content:center;font-size:22px;
-  cursor:pointer;transform:translateX(100%);transition:transform .2s}
+/* Swipe delete */
+.ci-del{position:absolute;right:0;top:0;bottom:0;width:80px;
+  background:var(--red);display:flex;align-items:center;justify-content:center;
+  font-size:22px;cursor:pointer;transform:translateX(100%);transition:transform .2s var(--anim)}
 .ci.sw .ci-del{transform:translateX(0)}
-.muted-badge{font-size:16px;color:var(--t3);line-height:1}
-.pinned-badge{font-size:11px;color:var(--ylw);padding:2px 5px;background:rgba(255,214,10,.12);border-radius:5px}
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  flex:1;gap:12px;color:var(--t3);font-size:14px;text-align:center;padding:40px 24px}
-.empty-ico{font-size:60px;opacity:.18}
+  flex:1;gap:14px;color:var(--t3);font-size:14px;text-align:center;padding:40px 24px}
+.empty-ico{font-size:64px;opacity:.15}
 .fab{position:absolute;bottom:calc(var(--sb)+16px);right:16px;width:54px;height:54px;
-  background:var(--acc);border:none;border-radius:50%;color:#fff;font-size:22px;
-  display:flex;align-items:center;justify-content:center;cursor:pointer;
-  box-shadow:0 4px 24px rgba(47,127,245,.4);transition:transform .12s;z-index:5}
-.fab:active{transform:scale(.9)}
+  background:linear-gradient(135deg,var(--acc),#6040e0);border:none;border-radius:50%;
+  color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;box-shadow:0 4px 20px rgba(47,127,245,.45);transition:transform .15s,box-shadow .15s;z-index:5}
+.fab:active{transform:scale(.9);box-shadow:0 2px 8px rgba(47,127,245,.25)}
 
-/* ════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════
    CHAT VIEW
-════════════════════════════════════════════════════════ */
+═══════════════════════════════════════ */
 #s-chat,#s-grp{background:var(--bg)}
+/* Chat background patterns */
 .msgs{flex:1;overflow-y:auto;padding:8px 10px 4px;
   display:flex;flex-direction:column;gap:1px;-webkit-overflow-scrolling:touch}
 .msgs::-webkit-scrollbar{display:none}
+.msgs.bg-dots{background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);background-size:24px 24px;}
+.msgs.bg-lines{background-image:repeating-linear-gradient(0deg,transparent,transparent 23px,rgba(255,255,255,.03) 24px);}
 .mr{display:flex;flex-direction:column;margin-bottom:3px;-webkit-user-select:none;user-select:none}
 .mr.own{align-items:flex-end}
 .mr.other{align-items:flex-start}
 .mr.sys{align-items:center;margin:8px 0}
-.mr.date-sep{align-items:center;margin:12px 0 4px}
-.sndr-lbl{font-size:11px;color:var(--t3);margin-bottom:3px;padding:0 4px}
-.bub{max-width:78%;padding:9px 13px;border-radius:18px;font-size:15px;
-  line-height:1.45;word-break:break-word;position:relative}
-.mr.own .bub{background:var(--own);color:#dce8ff;border-bottom-right-radius:4px}
-.mr.other .bub{background:var(--other);color:var(--t1);border:1px solid var(--b1);border-bottom-left-radius:4px}
-.mr.sys .bub{background:none;color:var(--t3);font-size:11px;text-align:center;padding:2px 8px;max-width:100%;border:none}
-.mr.date-sep .bub{background:var(--s3);color:var(--t3);font-size:11px;padding:3px 10px;border:none;border-radius:10px}
+.mr.ds{align-items:center;margin:12px 0 4px}
+.mr.new{animation:msgPop .25s var(--anim) forwards}
+@keyframes msgPop{from{opacity:0;transform:scale(.94) translateY(6px)}to{opacity:1;transform:none}}
+.sndr{font-size:11px;color:var(--t3);margin-bottom:3px;padding:0 4px}
+/* Bubbles — Telegram asymmetric style */
+.bub{max-width:78%;padding:9px 13px;font-size:15px;line-height:1.45;word-break:break-word;position:relative}
+.mr.own .bub{background:var(--own);color:#d8e8ff;border-radius:18px 18px 4px 18px}
+.mr.other .bub{background:var(--other);color:var(--t1);border:1px solid var(--b1);border-radius:18px 18px 18px 4px}
+.mr.sys .bub{background:rgba(0,0,0,.3);color:var(--t3);font-size:11px;text-align:center;padding:4px 10px;max-width:100%;border:none;border-radius:12px;backdrop-filter:blur(4px)}
+.mr.ds .bub{background:rgba(0,0,0,.3);color:var(--t3);font-size:11px;padding:3px 12px;border:none;border-radius:12px;backdrop-filter:blur(4px)}
+/* Image bubble */
 .bub.img-b{padding:0;overflow:hidden;border:none !important;background:transparent !important;max-width:240px}
-.bub.img-b img{width:100%;border-radius:18px;display:block;cursor:pointer}
-.bub.file-b{display:flex;align-items:center;gap:10px;min-width:160px;cursor:pointer}
-.f-ico{width:36px;height:36px;background:rgba(255,255,255,.1);border-radius:8px;
+.bub.img-b img{width:100%;display:block;cursor:pointer;transition:opacity .15s}
+.bub.img-b img:active{opacity:.8}
+.mr.own .bub.img-b{border-radius:18px 18px 4px 18px}
+.mr.other .bub.img-b{border-radius:18px 18px 18px 4px}
+/* File bubble */
+.bub.file-b{display:flex;align-items:center;gap:10px;min-width:180px;cursor:pointer;padding:10px 13px}
+.f-ico{width:36px;height:36px;background:rgba(255,255,255,.12);border-radius:10px;
   display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.f-det{flex:1;min-width:0}
 .f-nm{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .f-sz{font-size:11px;opacity:.6;margin-top:1px}
+/* Voice message */
+.bub.voice-b{display:flex;align-items:center;gap:10px;min-width:180px;cursor:pointer;padding:10px 13px}
+.v-play{width:34px;height:34px;background:rgba(255,255,255,.15);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;
+  transition:background .12s}
+.v-play:active{background:rgba(255,255,255,.25)}
+.v-bar{flex:1;height:3px;background:rgba(255,255,255,.2);border-radius:2px;position:relative}
+.v-bar-fill{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,.7);border-radius:2px;width:0%;transition:width .1s}
+.v-dur{font-size:11px;opacity:.7;flex-shrink:0}
+/* Meta row */
 .msg-meta{display:flex;align-items:center;gap:4px;margin-top:3px;padding:0 3px}
 .msg-meta.r{justify-content:flex-end}
 .msg-meta.l{justify-content:flex-start}
-.m-time{font-size:10px;color:var(--t3)}
-.m-tick{font-size:11px;color:var(--t3)}
+.m-t{font-size:10px;color:var(--t3)}
+.m-tick{font-size:11px;color:var(--t3);margin-left:2px}
 .m-tick.read{color:var(--acc)}
-.tpill{font-size:10px;color:var(--red);padding:1px 5px;background:rgba(255,69,58,.12);
-  border-radius:4px;margin-left:3px}
+.tpill{font-size:10px;color:var(--red);padding:1px 6px;background:rgba(255,69,58,.13);border-radius:5px;margin-left:3px}
 .tpill.urg{animation:ublnk 1s infinite}
 @keyframes ublnk{0%,100%{opacity:1}50%{opacity:.1}}
+/* Quoted reply */
+.q-msg{background:rgba(255,255,255,.08);border-left:3px solid var(--acc);
+  border-radius:4px 10px 10px 4px;padding:5px 9px;margin-bottom:5px;
+  font-size:12px;color:rgba(255,255,255,.6);cursor:pointer;line-height:1.4}
+/* Reactions row */
+.rxns{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px;padding:0 2px}
+.rxn{font-size:14px;padding:2px 7px;background:var(--s3);border:1px solid var(--b2);
+  border-radius:12px;cursor:pointer;transition:transform .1s,background .1s;line-height:1.4}
+.rxn:active{transform:scale(1.2);background:var(--s4)}
+/* Typing bar */
 .typing-row{height:26px;padding:0 14px;display:flex;align-items:center;gap:8px;
   flex-shrink:0;opacity:0;transition:opacity .2s;pointer-events:none}
 .typing-row.on{opacity:1}
@@ -255,362 +300,359 @@ html,body{height:100%;height:100dvh;background:var(--bg);color:var(--t1);
 .tdots span:nth-child(3){animation-delay:.4s}
 @keyframes td{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
 .t-who{font-size:12px;color:var(--t3)}
+/* Reply bar above input */
+.reply-bar{display:none;padding:7px 12px 0;background:var(--s1);border-top:1px solid var(--b1);
+  flex-shrink:0}
+.reply-bar.on{display:flex;align-items:center;gap:10px}
+.rb-line{flex:1;border-left:3px solid var(--acc);padding-left:8px;
+  font-size:12px;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rb-close{background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer;padding:2px;flex-shrink:0}
+/* Input bar */
 .ibar{padding:8px 10px calc(var(--sb)+8px);background:var(--s1);
   border-top:1px solid var(--b1);display:flex;align-items:flex-end;gap:7px;flex-shrink:0}
-.mta{flex:1;padding:9px 13px;background:var(--s2);border:1.5px solid var(--b1);
+.mta{flex:1;padding:9px 14px;background:var(--s2);border:1.5px solid var(--b1);
   border-radius:22px;color:var(--t1);font-size:15px;outline:none;resize:none;
   min-height:38px;max-height:120px;line-height:1.4;font-family:inherit;
   transition:border-color .15s;-webkit-appearance:none}
 .mta:focus{border-color:var(--b2)}
 .mta::placeholder{color:var(--t3)}
-.send-btn{width:38px;height:38px;background:var(--acc);border:none;border-radius:50%;
-  color:#fff;font-size:17px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;flex-shrink:0;transition:background .12s,transform .1s}
-.send-btn:active{transform:scale(.88)}
+.send-btn{width:38px;height:38px;background:linear-gradient(135deg,var(--acc),#6040e0);border:none;
+  border-radius:50%;color:#fff;font-size:17px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;transition:transform .12s,box-shadow .12s;
+  box-shadow:0 3px 12px rgba(47,127,245,.35)}
+.send-btn:active{transform:scale(.88);box-shadow:none}
 .att-btn{width:34px;height:34px;background:none;border:none;color:var(--t3);
-  font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-/* Reactions */
-.rxns{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
-.rxn{font-size:14px;padding:2px 6px;background:var(--s3);border:1px solid var(--b2);
-  border-radius:10px;cursor:pointer;transition:background .1s}
-.rxn:active{background:var(--s4)}
-/* Reply quote */
-.reply-quote{padding:6px 10px;background:var(--s3);border-left:3px solid var(--acc);
-  border-radius:4px 8px 8px 4px;margin-bottom:5px;font-size:12px;color:var(--t2);
-  display:flex;align-items:center;gap:8px;cursor:pointer}
-.rq-close{margin-left:auto;color:var(--t3);font-size:16px;cursor:pointer;flex-shrink:0}
-.quoted-msg{background:var(--s4);border-radius:6px;padding:4px 8px;
-  font-size:12px;color:var(--t3);margin-bottom:5px;border-left:2px solid var(--acc)}
+  font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  transition:color .12s,transform .12s}
+.att-btn:active{transform:scale(.88);color:var(--t1)}
+/* Mic button (record voice) */
+.mic-btn{width:34px;height:34px;background:none;border:none;color:var(--t3);
+  font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  transition:all .12s;border-radius:50%}
+.mic-btn.recording{color:var(--red);background:rgba(255,69,58,.1);animation:micPulse 1s infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,69,58,.4)}50%{box-shadow:0 0 0 8px rgba(255,69,58,0)}}
 
-/* ════════════════════════════════════════════════════════
-   CONTACTS TAB
-════════════════════════════════════════════════════════ */
-#s-contacts{background:var(--bg)}
-
-/* ════════════════════════════════════════════════════════
-   PROFILE TAB
-════════════════════════════════════════════════════════ */
-#s-profile{overflow-y:auto}
+/* ═══════════════════════════════════════
+   PROFILE
+═══════════════════════════════════════ */
+#s-profile{overflow-y:auto;background:var(--bg)}
 .prof-hdr{display:flex;flex-direction:column;align-items:center;
-  padding:calc(var(--st)+24px) 20px 24px;background:var(--s1);border-bottom:1px solid var(--b1)}
-.prof-av{width:80px;height:80px;border-radius:50%;background:var(--acc3);color:var(--acc);
-  display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;
-  margin-bottom:12px;cursor:pointer;position:relative}
-.prof-av-edit{position:absolute;bottom:0;right:0;width:22px;height:22px;
+  padding:calc(var(--st)+28px) 20px 28px;background:var(--s1);border-bottom:1px solid var(--b1)}
+.prof-av{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,var(--acc),#8040f8);
+  display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;
+  margin-bottom:14px;cursor:pointer;position:relative;
+  box-shadow:0 4px 24px rgba(47,127,245,.35)}
+.prof-av-edit{position:absolute;bottom:0;right:0;width:24px;height:24px;
   background:var(--acc);border-radius:50%;font-size:12px;
-  display:flex;align-items:center;justify-content:center}
+  display:flex;align-items:center;justify-content:center;border:2px solid var(--s1)}
 .prof-name{font-size:22px;font-weight:700;margin-bottom:5px;cursor:pointer}
-.prof-id-lbl{font-size:11px;color:var(--t3);font-family:'SF Mono','Courier New',monospace;
+.prof-id-d{font-size:11px;color:var(--t3);font-family:'SF Mono',monospace;
   text-align:center;word-break:break-all;max-width:320px;cursor:pointer;
-  padding:5px 10px;background:var(--s2);border-radius:8px;margin-top:4px;line-height:1.5}
+  padding:6px 12px;background:var(--s2);border-radius:10px;margin-top:4px;line-height:1.5}
 
-/* ════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════
+   NOTES SCREEN
+═══════════════════════════════════════ */
+#s-notes{background:var(--bg)}
+.note-item{padding:14px 16px;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s;-webkit-user-select:none;user-select:none}
+.note-item:active{background:var(--s1)}
+.note-title{font-size:15px;font-weight:600;color:var(--t1);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.note-prev{font-size:13px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.note-date{font-size:11px;color:var(--t3);margin-top:3px}
+#s-note-edit{background:var(--bg)}
+.note-edit-area{flex:1;padding:14px 16px;background:transparent;border:none;color:var(--t1);
+  font-size:15px;line-height:1.6;font-family:inherit;outline:none;resize:none;
+  -webkit-user-select:text;user-select:text}
+
+/* ═══════════════════════════════════════
    CALL SCREEN
-════════════════════════════════════════════════════════ */
-#s-call{align-items:center;justify-content:center;
-  background:radial-gradient(ellipse at 50% 30%,#0d2040 0%,#0c0c0f 70%)}
+═══════════════════════════════════════ */
+#s-call{align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 30%,#0d1e3c 0%,#0c0c0f 70%)}
 .call-av{width:110px;height:110px;border-radius:50%;font-size:44px;font-weight:700;
   display:flex;align-items:center;justify-content:center;margin-bottom:20px;
-  box-shadow:0 0 0 12px rgba(255,255,255,.04),0 0 0 24px rgba(255,255,255,.02)}
+  box-shadow:0 0 0 12px rgba(255,255,255,.04),0 0 0 24px rgba(255,255,255,.018)}
 .call-name{font-size:28px;font-weight:700;margin-bottom:6px}
 .call-stat{font-size:15px;color:var(--t2);margin-bottom:6px}
-.call-time{font-size:15px;color:var(--grn);display:none;margin-bottom:6px}
-.call-enc{font-size:11px;color:rgba(45,211,111,.6);margin-bottom:48px;letter-spacing:.04em}
+.call-time{font-size:15px;color:var(--grn);display:none;margin-bottom:6px;font-feature-settings:'tnum'}
+.call-enc{font-size:11px;color:rgba(48,208,104,.6);margin-bottom:48px;letter-spacing:.04em}
 .call-btns{display:flex;gap:28px;margin-bottom:32px}
 .cbtn{width:70px;height:70px;border-radius:50%;border:none;
   display:flex;align-items:center;justify-content:center;font-size:28px;
   cursor:pointer;transition:transform .12s,background .15s}
 .cbtn:active{transform:scale(.88)}
-.cb-end{background:var(--red)}
+.cb-end{background:var(--red);box-shadow:0 4px 16px rgba(255,69,58,.4)}
 .cb-mut{background:var(--s4)}
 .cb-spk{background:var(--s4)}
-.call-quality{font-size:11px;color:var(--t3)}
+.call-qual{font-size:11px;color:var(--t3);margin-top:8px}
 
-/* ════════════════════════════════════════════════════════
-   BOTTOM SHEETS
-════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════
+   SHEETS
+═══════════════════════════════════════ */
 .sh-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);
   z-index:300;align-items:flex-end;justify-content:center;
-  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .sh-bg.on{display:flex;animation:fdi .18s ease}
 @keyframes fdi{from{opacity:0}to{opacity:1}}
-.sh{background:var(--s1);border-radius:22px 22px 0 0;
-  padding:14px 18px calc(var(--sb)+18px);width:100%;max-width:520px;
-  max-height:92dvh;overflow-y:auto;animation:sup .22s cubic-bezier(.32,1,.23,1)}
+.sh{background:var(--s1);border-radius:24px 24px 0 0;
+  padding:14px 18px calc(var(--sb)+20px);width:100%;max-width:520px;
+  max-height:92dvh;overflow-y:auto;animation:sup .24s var(--anim)}
 .sh::-webkit-scrollbar{display:none}
 @keyframes sup{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.sh-hdl{width:36px;height:4px;background:var(--b3);border-radius:2px;margin:0 auto 16px}
-.sh-title{font-size:18px;font-weight:700;margin-bottom:5px}
-.sh-sub{font-size:13px;color:var(--t3);margin-bottom:18px;line-height:1.55}
-.sh-lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
+.sh-hdl{width:40px;height:4px;background:var(--b3);border-radius:2px;margin:0 auto 18px}
+.sh-t{font-size:18px;font-weight:700;margin-bottom:5px}
+.sh-s{font-size:13px;color:var(--t3);margin-bottom:18px;line-height:1.55}
 
-/* Context menu */
+/* ═══════════════════════════════════════
+   CONTEXT MENU
+═══════════════════════════════════════ */
 #ctx{display:none;position:fixed;background:var(--s2);border:1px solid var(--b3);
-  border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.7);z-index:400;overflow:hidden;min-width:175px}
+  border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.7);z-index:400;overflow:hidden;min-width:180px}
 #ctx.on{display:block;animation:fdi .1s ease}
-.ctx-i{padding:13px 16px;font-size:15px;cursor:pointer;transition:background .1s;
-  border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px}
+.ctx-i{padding:13px 17px;font-size:15px;cursor:pointer;transition:background .1s;
+  border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:11px}
 .ctx-i:last-child{border-bottom:none}
 .ctx-i:active{background:var(--s3)}
 .ctx-i.r{color:var(--red)}
 
-/* Emoji picker */
-.emoji-pick{position:fixed;z-index:401;background:var(--s2);border:1px solid var(--b3);
-  border-radius:14px;padding:8px;display:flex;gap:4px;flex-wrap:wrap;
-  box-shadow:0 8px 32px rgba(0,0,0,.6);max-width:220px}
-.ep-btn{background:none;border:none;font-size:22px;cursor:pointer;padding:4px;
-  border-radius:8px;transition:background .1s}
-.ep-btn:active{background:var(--s3)}
-
-/* ════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════
    MISC
-════════════════════════════════════════════════════════ */
-.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);
-  z-index:500;align-items:center;justify-content:center;cursor:zoom-out}
+═══════════════════════════════════════ */
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);
+  z-index:500;flex-direction:column;align-items:center;justify-content:center}
 .lightbox.on{display:flex}
-.lightbox img{max-width:96vw;max-height:96dvh;border-radius:12px}
-.lightbox-caption{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
-  color:rgba(255,255,255,.5);font-size:12px}
-.notif-dot{position:absolute;top:8px;right:8px;width:8px;height:8px;
-  background:var(--red);border-radius:50%;border:2px solid var(--bg);display:none}
-.notif-dot.on{display:block}
-/* Online presence indicator */
-.online-ring{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--grn)}
+.lightbox img{max-width:96vw;max-height:88dvh;border-radius:14px;transition:transform .2s}
+.lb-close{position:absolute;top:calc(var(--st)+16px);right:16px;width:36px;height:36px;
+  background:rgba(255,255,255,.12);border:none;border-radius:50%;color:#fff;
+  font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1}
+/* Floating emoji animation */
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-120px) scale(1.6)}}
+.float-emoji{position:fixed;font-size:32px;pointer-events:none;z-index:600;animation:floatUp .9s ease-out forwards}
+/* Screen lock overlay */
+#screen-lock{display:none;position:fixed;inset:0;background:var(--bg);z-index:900;
+  align-items:center;justify-content:center;flex-direction:column;gap:16px}
+#screen-lock.on{display:flex}
+.lock-icon{font-size:56px;margin-bottom:8px}
+.lock-hint{font-size:14px;color:var(--t3)}
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="vp">
+<div id="vp">
 
-    <!-- ═══ ONBOARDING ═══ -->
-    <div id="s-ob" class="sc on">
-      <div class="ob-card">
-        <div class="ob-logo">
-          <div class="ob-icon">⚖</div>
-          <div><div class="ob-name">LibraOS-4677</div><div class="ob-sub">E2E krypterat · Anonymt · P2P</div></div>
-        </div>
-        <div class="ob-feats">
-          <div class="ob-feat"><div class="ob-f-ico" style="background:rgba(45,211,111,.1);color:var(--grn)">🔐</div>AES-256-GCM + ECDH Forward Secrecy</div>
-          <div class="ob-feat"><div class="ob-f-ico" style="background:rgba(47,127,245,.1);color:var(--acc)">📡</div>P2P-relay — inget innehåll lagras</div>
-          <div class="ob-feat"><div class="ob-f-ico" style="background:rgba(160,96,248,.1);color:var(--prp)">👤</div>Inget konto, inget telefonnummer</div>
-          <div class="ob-feat"><div class="ob-f-ico" style="background:rgba(255,214,10,.1);color:var(--ylw)">⏱</div>Självförstörande meddelanden</div>
-          <div class="ob-feat"><div class="ob-f-ico" style="background:rgba(50,212,232,.1);color:var(--teal)">📞</div>Krypterade röstsamtal (DTLS-SRTP)</div>
-        </div>
-        <div class="field">
-          <span class="lbl">Ditt alias</span>
-          <div class="alias-row">
-            <input class="fi" id="ob-alias" maxlength="24" placeholder="Genererat alias...">
-            <button class="regen-btn" onclick="regen('ob-alias')" title="Nytt alias">↺</button>
-          </div>
-          <div class="hint">Slumpmässigt. Ändra när som helst i Profil.</div>
-        </div>
-        <div class="field">
-          <span class="lbl">Ditt permanenta kontakt-ID</span>
-          <div class="id-box"><span class="id-val" id="ob-id">—</span><button class="copy-btn" onclick="cpEl('ob-id')">Kopiera</button></div>
-          <div class="hint">Dela med vem du vill chatta med. Unikt och permanent.</div>
-        </div>
-        <button class="primary" id="ob-btn">Kom igång →</button>
+<!-- ═══ ONBOARDING ═══ -->
+<div id="s-ob" class="sc on">
+<div class="ob-wrap">
+  <div class="ob-logo">
+    <div class="ob-icon">⚖</div>
+    <div><div class="ob-name">LibraOS-4677</div><div class="ob-sub">E2E krypterat · Anonymt · P2P</div></div>
+  </div>
+  <div class="ob-feats">
+    <div class="ob-feat"><div class="ob-f-i" style="background:rgba(48,208,104,.1);color:var(--grn)">🔐</div>AES-256-GCM + ECDH Forward Secrecy</div>
+    <div class="ob-feat"><div class="ob-f-i" style="background:rgba(47,127,245,.1);color:var(--acc)">📡</div>P2P relay — inget innehåll lagras</div>
+    <div class="ob-feat"><div class="ob-f-i" style="background:rgba(152,88,245,.1);color:var(--prp)">👤</div>Inget konto, inget telefonnummer</div>
+    <div class="ob-feat"><div class="ob-f-i" style="background:rgba(255,201,0,.1);color:var(--ylw)">⏱</div>Självförstörande meddelanden</div>
+    <div class="ob-feat"><div class="ob-f-i" style="background:rgba(40,206,224,.1);color:var(--teal)">📞</div>Krypterade röstsamtal + röstmeddelanden</div>
+    <div class="ob-feat"><div class="ob-f-i" style="background:rgba(255,159,10,.1);color:#ff9f0a">📝</div>Krypterade anteckningar (lokalt)</div>
+  </div>
+  <div class="field">
+    <span class="lbl">Ditt alias</span>
+    <div class="alias-row">
+      <input class="fi" id="ob-alias" maxlength="24" placeholder="Genererat alias...">
+      <button class="regen-btn" onclick="regen('ob-alias')" title="Nytt alias">↺</button>
+    </div>
+    <div class="hint">Slumpmässigt genererat. Ändra när som helst i Profil.</div>
+  </div>
+  <div class="field">
+    <span class="lbl">Ditt permanenta kontakt-ID</span>
+    <div class="id-box"><span class="id-val" id="ob-id">—</span><button class="copy-btn" onclick="cpEl('ob-id')">Kopiera</button></div>
+    <div class="hint">Dela med vem du vill chatta med. Unikt och permanent.</div>
+  </div>
+  <button class="primary" id="ob-btn">Kom igång →</button>
+</div>
+</div>
+
+<!-- ═══ CHATS ═══ -->
+<div id="s-chats" class="sc">
+  <div class="topbar">
+    <div class="tb-t" style="flex:1">Chattar</div>
+    <div class="conn-dot" id="cdot"></div>
+    <button class="ib" onclick="oSh('sh-new')" title="Ny chatt">+</button>
+  </div>
+  <div class="sbar"><input class="sinp" id="chats-q" placeholder="Sök chattar..." oninput="renderChats()"></div>
+  <div class="scroll" id="chats-list" style="position:relative"></div>
+  <button class="fab" onclick="oSh('sh-new')">+</button>
+</div>
+
+<!-- ═══ CONTACTS ═══ -->
+<div id="s-contacts" class="sc">
+  <div class="topbar">
+    <div class="tb-t" style="flex:1">Kontakter</div>
+    <button class="ib" onclick="oSh('sh-add-c')" title="Lägg till">+</button>
+  </div>
+  <div class="sbar"><input class="sinp" id="contacts-q" placeholder="Sök kontakter..." oninput="renderContacts()"></div>
+  <div class="scroll" id="contacts-list"></div>
+</div>
+
+<!-- ═══ PROFILE ═══ -->
+<div id="s-profile" class="sc">
+  <div class="prof-hdr">
+    <div class="prof-av" id="prof-av" onclick="oSh('sh-rename')">
+      <span id="prof-av-l">?</span>
+      <div class="prof-av-edit">✏</div>
+    </div>
+    <div class="prof-name" id="prof-name" onclick="oSh('sh-rename')">—</div>
+    <div class="prof-id-d" id="prof-id" onclick="cpMyId()">—</div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+      <div class="enc-pill"><div class="enc-dot"></div>AES-256-GCM</div>
+      <div class="enc-pill" style="background:rgba(47,127,245,.1);border-color:rgba(47,127,245,.22);color:var(--acc)"><div style="width:6px;height:6px;border-radius:50%;background:var(--acc)"></div>ECDH P-256</div>
+      <div class="enc-pill" style="background:rgba(152,88,245,.1);border-color:rgba(152,88,245,.22);color:var(--prp)"><div style="width:6px;height:6px;border-radius:50%;background:var(--prp)"></div>PBKDF2 200k</div>
+    </div>
+  </div>
+  <div class="scroll">
+  <div class="sec">
+    <div class="sec-t">Konto</div>
+    <div class="card">
+      <div class="cr" onclick="oSh('sh-rename')"><div class="cr-ico" style="background:var(--acc3);color:var(--acc)">✏</div><div class="cr-info"><div class="cr-label">Byt alias</div></div><div class="cr-arr">›</div></div>
+      <div class="cr" onclick="cpMyId()"><div class="cr-ico" style="background:rgba(48,208,104,.12);color:var(--grn)">🔑</div><div class="cr-info"><div class="cr-label">Kontakt-ID</div><div class="cr-val" id="prof-id-sh">—</div></div><div class="cr-arr" style="font-size:16px">⎘</div></div>
+    </div>
+    <div class="sec-t">Meddelanden</div>
+    <div class="card">
+      <div class="cr" onclick="oSh('sh-timer')"><div class="cr-ico" style="background:rgba(255,69,58,.1);color:var(--red)">⏱</div><div class="cr-info"><div class="cr-label">Standardtimer (nya chattar)</div><div class="cr-val" id="prof-timer">Av</div></div><div class="cr-arr">›</div></div>
+      <div class="cr" onclick="oSh('sh-theme')"><div class="cr-ico" style="background:rgba(152,88,245,.12);color:var(--prp)">🎨</div><div class="cr-info"><div class="cr-label">Tema</div><div class="cr-val" id="prof-theme-lbl">Svart</div></div><div class="cr-arr">›</div></div>
+      <div class="cr" onclick="oSh('sh-chat-bg')"><div class="cr-ico" style="background:rgba(47,127,245,.1);color:var(--acc)">🖼</div><div class="cr-info"><div class="cr-label">Chattbakgrund</div><div class="cr-val">Välj mönster</div></div><div class="cr-arr">›</div></div>
+    </div>
+    <div class="sec-t">App</div>
+    <div class="card">
+      <div class="cr" onclick="goNotes()"><div class="cr-ico" style="background:rgba(255,159,10,.1);color:#ff9f0a">📝</div><div class="cr-info"><div class="cr-label">Krypterade anteckningar</div><div class="cr-val">Lokalt, krypterat med din nyckel</div></div><div class="cr-arr">›</div></div>
+      <div class="cr" onclick="oSh('sh-pwa')"><div class="cr-ico" style="background:rgba(152,88,245,.12);color:var(--prp)">📲</div><div class="cr-info"><div class="cr-label">Installera på hemskärmen</div><div class="cr-val">Fungerar som Signal/Telegram</div></div><div class="cr-arr">›</div></div>
+      <div class="cr" onclick="oSh('sh-vpn')"><div class="cr-ico" style="background:rgba(40,206,224,.1);color:var(--teal)">🌐</div><div class="cr-info"><div class="cr-label">VPN & anonymitetguide</div><div class="cr-val">Maximera integritetsskyddet</div></div><div class="cr-arr">›</div></div>
+      <div class="cr" onclick="oSh('sh-sec-info')"><div class="cr-ico" style="background:rgba(48,208,104,.1);color:var(--grn)">🔐</div><div class="cr-info"><div class="cr-label">Säkerhetsinfo</div><div class="cr-val">Krypteringsarkitektur</div></div><div class="cr-arr">›</div></div>
+    </div>
+    <div class="sec-t">Rensa</div>
+    <div class="card">
+      <div class="cr" onclick="clearAllChats()"><div class="cr-ico" style="background:rgba(255,69,58,.08);color:var(--red)">🗑</div><div class="cr-info"><div class="cr-label" style="color:var(--red)">Rensa alla chattar</div></div><div class="cr-arr">›</div></div>
+    </div>
+    <div class="sec-t" style="color:var(--red)">Nödradering</div>
+    <div class="card" style="margin-bottom:40px">
+      <div class="cr" onclick="wipeAll()">
+        <div class="cr-ico" style="background:rgba(255,69,58,.12);color:var(--red)">💣</div>
+        <div class="cr-info"><div class="cr-label" style="color:var(--red)">Radera allt</div><div class="cr-val" style="color:var(--t3)">Raderar konto, kontakter, meddelanden, anteckningar — permanent</div></div>
+        <div class="cr-arr" style="color:var(--red)">›</div>
       </div>
     </div>
-
-    <!-- ═══ CHATS ═══ -->
-    <div id="s-chats" class="sc">
-      <div class="topbar">
-        <div class="tb-title" style="flex:1">Chattar</div>
-        <div class="conn-dot" id="cdot" title="Relaystatus"></div>
-        <button class="ib" onclick="oSh('sh-new')">✏</button>
-      </div>
-      <div class="sbar"><input class="sinp" id="chats-q" placeholder="Sök chattar..." oninput="renderChats()"></div>
-      <div class="scroll" id="chats-list" style="position:relative"></div>
-      <button class="fab" onclick="oSh('sh-new')">+</button>
-    </div>
-
-    <!-- ═══ CONTACTS ═══ -->
-    <div id="s-contacts" class="sc">
-      <div class="topbar">
-        <div class="tb-title" style="flex:1">Kontakter</div>
-        <button class="ib" onclick="oSh('sh-add-c')">+</button>
-      </div>
-      <div class="sbar"><input class="sinp" id="contacts-q" placeholder="Sök kontakter..." oninput="renderContacts()"></div>
-      <div class="scroll" id="contacts-list"></div>
-    </div>
-
-    <!-- ═══ PROFILE ═══ -->
-    <div id="s-profile" class="sc">
-      <div class="prof-hdr">
-        <div class="prof-av" id="prof-av" onclick="oSh('sh-rename')">
-          <span id="prof-av-l">?</span>
-          <div class="prof-av-edit">✏</div>
-        </div>
-        <div class="prof-name" id="prof-name" onclick="oSh('sh-rename')">—</div>
-        <div class="prof-id-lbl" id="prof-id" onclick="cpMyId()">—</div>
-        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
-          <div class="enc-pill"><div class="enc-pulse"></div>AES-256-GCM</div>
-          <div class="enc-pill" style="background:rgba(47,127,245,.1);border-color:rgba(47,127,245,.22);color:var(--acc)"><div style="width:6px;height:6px;border-radius:50%;background:var(--acc)"></div>ECDH P-256</div>
-          <div class="enc-pill" style="background:rgba(160,96,248,.1);border-color:rgba(160,96,248,.22);color:var(--prp)"><div style="width:6px;height:6px;border-radius:50%;background:var(--prp)"></div>PBKDF2 200k</div>
-        </div>
-      </div>
-      <div class="scroll">
-        <div class="sec">
-          <div class="sec-title">Konto</div>
-          <div class="card">
-            <div class="cr" onclick="oSh('sh-rename')">
-              <div class="cr-ico" style="background:var(--acc3);color:var(--acc)">✏</div>
-              <div class="cr-info"><div class="cr-label">Byt alias</div></div>
-              <div class="cr-arr">›</div>
-            </div>
-            <div class="cr" onclick="cpMyId()">
-              <div class="cr-ico" style="background:rgba(45,211,111,.12);color:var(--grn)">🔑</div>
-              <div class="cr-info"><div class="cr-label">Kontakt-ID</div><div class="cr-val" id="prof-id-sh">—</div></div>
-              <div class="cr-arr" style="font-size:16px">⎘</div>
-            </div>
-          </div>
-          <div class="sec-title">Meddelanden</div>
-          <div class="card">
-            <div class="cr" onclick="oSh('sh-timer')">
-              <div class="cr-ico" style="background:rgba(255,69,58,.1);color:var(--red)">⏱</div>
-              <div class="cr-info"><div class="cr-label">Självförstörande meddelanden</div><div class="cr-val" id="prof-timer">Av</div></div>
-              <div class="cr-arr">›</div>
-            </div>
-            <div class="cr" onclick="oSh('sh-theme')">
-              <div class="cr-ico" style="background:rgba(160,96,248,.12);color:var(--prp)">🎨</div>
-              <div class="cr-info"><div class="cr-label">Tema & accent</div><div class="cr-val" id="prof-theme">Mörkt</div></div>
-              <div class="cr-arr">›</div>
-            </div>
-          </div>
-          <div class="sec-title">App</div>
-          <div class="card">
-            <div class="cr" onclick="oSh('sh-pwa')">
-              <div class="cr-ico" style="background:rgba(160,96,248,.12);color:var(--prp)">📲</div>
-              <div class="cr-info"><div class="cr-label">Installera på hemskärmen</div><div class="cr-val">Fungerar som Signal/Telegram</div></div>
-              <div class="cr-arr">›</div>
-            </div>
-            <div class="cr" onclick="oSh('sh-vpn')">
-              <div class="cr-ico" style="background:rgba(50,212,232,.1);color:var(--teal)">🌐</div>
-              <div class="cr-info"><div class="cr-label">VPN & anonymitetguide</div><div class="cr-val">Maximera integritetsskyddet</div></div>
-              <div class="cr-arr">›</div>
-            </div>
-            <div class="cr" onclick="oSh('sh-security-info')">
-              <div class="cr-ico" style="background:rgba(45,211,111,.1);color:var(--grn)">🔐</div>
-              <div class="cr-info"><div class="cr-label">Säkerhetsinfo</div><div class="cr-val">Hur krypteringen fungerar</div></div>
-              <div class="cr-arr">›</div>
-            </div>
-          </div>
-          <div class="sec-title">Rensa</div>
-          <div class="card">
-            <div class="cr" onclick="clearAllChats()">
-              <div class="cr-ico" style="background:rgba(255,69,58,.08);color:var(--red)">🗑</div>
-              <div class="cr-info"><div class="cr-label" style="color:var(--red)">Rensa alla chattar</div></div>
-              <div class="cr-arr">›</div>
-            </div>
-          </div>
-          <div class="sec-title" style="color:var(--red)">Fara</div>
-          <div class="card" style="margin-bottom:40px">
-            <div class="cr" onclick="deleteAccount()">
-              <div class="cr-ico" style="background:rgba(255,69,58,.1);color:var(--red)">⚠</div>
-              <div class="cr-info"><div class="cr-label" style="color:var(--red)">Radera konto</div><div class="cr-val">Permanent — kan inte ångras</div></div>
-              <div class="cr-arr">›</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ CHAT VIEW (1-on-1) ═══ -->
-    <div id="s-chat" class="sc">
-      <div class="topbar">
-        <button class="ib back" onclick="goBack()">‹</button>
-        <div class="av sm" id="c-av" onclick="openContactInfo()"></div>
-        <div style="flex:1;min-width:0;cursor:pointer" onclick="openContactInfo()">
-          <div style="font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="c-name"></div>
-          <div class="tb-sub" id="c-sub">E2E krypterat</div>
-        </div>
-        <button class="ib" onclick="startCall()" title="Röstsamtal">📞</button>
-        <button class="ib" onclick="openChatMenu()">⋯</button>
-      </div>
-      <div class="keybanner pending" id="c-keybanner">
-        <span>⏳</span><span id="c-keytext">Upprättar krypterad session...</span>
-      </div>
-      <div class="msgs" id="c-msgs"></div>
-      <div class="typing-row" id="c-typing"><div class="tdots"><span></span><span></span><span></span></div><span class="t-who" id="c-twho"></span></div>
-      <div id="c-reply-bar" style="display:none;padding:6px 10px 0;background:var(--s1);border-top:1px solid var(--b1)">
-        <div class="reply-quote"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="c-reply-text">—</span><span class="rq-close" onclick="clearReply()">✕</span></div>
-      </div>
-      <div class="ibar">
-        <button class="att-btn" onclick="trig('dm-file')">📎</button>
-        <input type="file" id="dm-file" accept="image/*,video/*,application/pdf,.zip,.txt" style="display:none" onchange="handleFile(event,'dm')">
-        <textarea class="mta" id="dm-ta" placeholder="Meddelande..." rows="1"
-          onkeydown="taKey(event,'dm')" oninput="taIn(event,'dm')"></textarea>
-        <button class="send-btn" onclick="doSend('dm')">➤</button>
-      </div>
-    </div>
-
-    <!-- ═══ GROUP CHAT ═══ -->
-    <div id="s-grp" class="sc">
-      <div class="topbar">
-        <button class="ib back" onclick="goBack()">‹</button>
-        <div class="av sm avG" id="g-av">👥</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="g-name"></div>
-          <div class="tb-sub" id="g-sub"></div>
-        </div>
-        <button class="ib" onclick="oSh('sh-grp-menu')">⋯</button>
-      </div>
-      <div class="msgs" id="g-msgs"></div>
-      <div class="typing-row" id="g-typing"><div class="tdots"><span></span><span></span><span></span></div><span class="t-who" id="g-twho"></span></div>
-      <div id="g-reply-bar" style="display:none;padding:6px 10px 0;background:var(--s1);border-top:1px solid var(--b1)">
-        <div class="reply-quote"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="g-reply-text">—</span><span class="rq-close" onclick="clearReply()">✕</span></div>
-      </div>
-      <div class="ibar">
-        <button class="att-btn" onclick="trig('grp-file')">📎</button>
-        <input type="file" id="grp-file" accept="image/*,video/*,application/pdf,.zip,.txt" style="display:none" onchange="handleFile(event,'grp')">
-        <textarea class="mta" id="g-ta" placeholder="Meddelande..." rows="1"
-          onkeydown="taKey(event,'grp')" oninput="taIn(event,'grp')"></textarea>
-        <button class="send-btn" onclick="doSend('grp')">➤</button>
-      </div>
-    </div>
-
-    <!-- ═══ CALL ═══ -->
-    <div id="s-call" class="sc">
-      <div class="call-av" id="cl-av"></div>
-      <div class="call-name" id="cl-name">—</div>
-      <div class="call-stat" id="cl-stat">Ringer...</div>
-      <div class="call-time" id="cl-time">00:00</div>
-      <div class="call-enc">🔒 E2E krypterat · DTLS-SRTP</div>
-      <div class="call-btns">
-        <button class="cbtn cb-mut" id="mut-btn" onclick="toggleMute()">🎤</button>
-        <button class="cbtn cb-end" onclick="endCall(false)">📵</button>
-        <button class="cbtn cb-spk" id="spk-btn" onclick="toggleSpk()">🔊</button>
-      </div>
-      <div class="call-quality" id="cl-qual"></div>
-    </div>
-
-  </div><!-- /vp -->
-
-  <!-- ═══ BOTTOM NAV ═══ -->
-  <div id="bnav">
-    <button class="nt act" id="nt-chats" onclick="goTab('chats')">
-      <div class="ico" style="position:relative">💬<div class="nbadge" id="nb-chats">0</div></div>
-      <span>Chattar</span>
-    </button>
-    <button class="nt" id="nt-contacts" onclick="goTab('contacts')">
-      <div class="ico">👥</div><span>Kontakter</span>
-    </button>
-    <button class="nt" id="nt-profile" onclick="goTab('profile')">
-      <div class="ico">👤</div><span>Profil</span>
-    </button>
+  </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════════
-     SHEETS
-════════════════════════════════════════════════════════ -->
+<!-- ═══ NOTES SCREEN ═══ -->
+<div id="s-notes" class="sc">
+  <div class="topbar">
+    <button class="ib back" onclick="goBack()">‹</button>
+    <div class="tb-t" style="flex:1">Anteckningar</div>
+    <button class="ib" onclick="newNote()">+</button>
+  </div>
+  <div class="scroll" id="notes-list">
+    <div class="empty"><div class="empty-ico">📝</div><div>Inga anteckningar</div><div style="font-size:12px;margin-top:5px">Tryck + för att skapa</div></div>
+  </div>
+</div>
+<div id="s-note-edit" class="sc">
+  <div class="topbar">
+    <button class="ib back" onclick="closeNoteEdit()">‹</button>
+    <input class="fi" id="note-title-inp" placeholder="Titel..." style="flex:1;border-radius:10px;padding:8px 12px;font-size:16px;font-weight:600" oninput="noteChanged()">
+    <button class="ib" onclick="deleteNote()" style="color:var(--red)">🗑</button>
+  </div>
+  <textarea id="note-body-inp" class="note-edit-area" placeholder="Skriv din anteckning här..." oninput="noteChanged()"></textarea>
+</div>
+
+<!-- ═══ CHAT VIEW ═══ -->
+<div id="s-chat" class="sc">
+  <div class="topbar">
+    <button class="ib back" onclick="slideBack()">‹</button>
+    <div class="av sm" id="c-av" onclick="openCInfo()"></div>
+    <div style="flex:1;min-width:0;cursor:pointer" onclick="openCInfo()">
+      <div style="font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="c-name"></div>
+      <div class="tb-s" id="c-sub">E2E krypterat</div>
+    </div>
+    <button class="ib" onclick="startCall()" title="Ring">📞</button>
+    <button class="ib" onclick="openChatMenu()">⋯</button>
+  </div>
+  <div class="keybanner pend" id="c-keybanner"><span id="c-keytext">⏳ Upprättar krypterad session...</span></div>
+  <div class="msgs" id="c-msgs"></div>
+  <div class="typing-row" id="c-typing"><div class="tdots"><span></span><span></span><span></span></div><span class="t-who" id="c-twho"></span></div>
+  <div class="reply-bar" id="c-rbar"><span class="rb-line" id="c-rtext"></span><button class="rb-close" onclick="clearReply()">✕</button></div>
+  <div class="ibar">
+    <button class="att-btn" onclick="trig('dm-file')">📎</button>
+    <input type="file" id="dm-file" accept="image/*,video/*,application/pdf,.zip,.txt,.doc,.docx" style="display:none" onchange="handleFile(event,'dm')">
+    <button class="mic-btn" id="dm-mic" onclick="toggleRecord('dm')">🎤</button>
+    <textarea class="mta" id="dm-ta" placeholder="Meddelande..." rows="1"
+      onkeydown="taKey(event,'dm')" oninput="taIn(event,'dm')"></textarea>
+    <button class="send-btn" onclick="doSend('dm')">➤</button>
+  </div>
+</div>
+
+<!-- ═══ GROUP CHAT ═══ -->
+<div id="s-grp" class="sc">
+  <div class="topbar">
+    <button class="ib back" onclick="slideBack()">‹</button>
+    <div class="av sm avG" id="g-av">👥</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="g-name"></div>
+      <div class="tb-s" id="g-sub"></div>
+    </div>
+    <button class="ib" onclick="oSh('sh-grp-menu')">⋯</button>
+  </div>
+  <div class="msgs" id="g-msgs"></div>
+  <div class="typing-row" id="g-typing"><div class="tdots"><span></span><span></span><span></span></div><span class="t-who" id="g-twho"></span></div>
+  <div class="reply-bar" id="g-rbar"><span class="rb-line" id="g-rtext"></span><button class="rb-close" onclick="clearReply()">✕</button></div>
+  <div class="ibar">
+    <button class="att-btn" onclick="trig('grp-file')">📎</button>
+    <input type="file" id="grp-file" accept="image/*,video/*,application/pdf,.zip,.txt" style="display:none" onchange="handleFile(event,'grp')">
+    <button class="mic-btn" id="grp-mic" onclick="toggleRecord('grp')">🎤</button>
+    <textarea class="mta" id="g-ta" placeholder="Meddelande..." rows="1"
+      onkeydown="taKey(event,'grp')" oninput="taIn(event,'grp')"></textarea>
+    <button class="send-btn" onclick="doSend('grp')">➤</button>
+  </div>
+</div>
+
+<!-- ═══ CALL ═══ -->
+<div id="s-call" class="sc">
+  <div class="call-av" id="cl-av"></div>
+  <div class="call-name" id="cl-name">—</div>
+  <div class="call-stat" id="cl-stat">Ringer...</div>
+  <div class="call-time" id="cl-time">00:00</div>
+  <div class="call-enc">🔒 E2E krypterat · DTLS-SRTP</div>
+  <div class="call-btns">
+    <button class="cbtn cb-mut" id="mut-btn" onclick="toggleMute()">🎤</button>
+    <button class="cbtn cb-end" onclick="endCall(false)">📵</button>
+    <button class="cbtn cb-spk" id="spk-btn" onclick="toggleSpk()">🔊</button>
+  </div>
+  <div class="call-qual" id="cl-qual"></div>
+</div>
+
+</div><!-- /vp -->
+
+<!-- BOTTOM NAV -->
+<div id="bnav">
+  <button class="nt act" id="nt-chats" onclick="goTab('chats')">
+    <div class="ico" style="position:relative">💬<div class="nbadge" id="nb-chats">0</div></div><span>Chattar</span>
+  </button>
+  <button class="nt" id="nt-contacts" onclick="goTab('contacts')">
+    <div class="ico">👥</div><span>Kontakter</span>
+  </button>
+  <button class="nt" id="nt-notes" onclick="goTab('notes')">
+    <div class="ico">📝</div><span>Anteckningar</span>
+  </button>
+  <button class="nt" id="nt-profile" onclick="goTab('profile')">
+    <div class="ico">👤</div><span>Profil</span>
+  </button>
+</div>
+</div><!-- /app -->
+
+<!-- ═══════════ SHEETS ═══════════ -->
 
 <!-- NEW CHAT -->
 <div class="sh-bg" id="sh-new" onclick="bgC(event,'sh-new')"><div class="sh">
-  <div class="sh-hdl"></div>
-  <div class="sh-title">Ny chatt</div>
-  <div class="sh-sub">Välj kontakt eller skapa/gå med i grupp.</div>
+  <div class="sh-hdl"></div><div class="sh-t">Ny chatt</div><div class="sh-s">Välj kontakt eller skapa/gå med i grupp.</div>
   <div id="sh-new-list"></div>
   <div class="hr">ny</div>
   <button class="ghost a" onclick="cSh('sh-new');oSh('sh-add-c')">+ Lägg till kontakt</button>
@@ -620,62 +662,49 @@ html,body{height:100%;height:100dvh;background:var(--bg);color:var(--t1);
 
 <!-- ADD CONTACT -->
 <div class="sh-bg" id="sh-add-c" onclick="bgC(event,'sh-add-c')"><div class="sh">
-  <div class="sh-hdl"></div>
-  <div class="sh-title">Lägg till kontakt</div>
-  <div class="sh-sub">Ange kontakt-ID direkt, eller skicka/lös in en 256-bit inbjudningskod.</div>
-  <div class="field"><span class="lbl">Kontakt-ID</span>
-    <input class="fi" id="add-cid" placeholder="Klistra in kontakt-ID..."></div>
-  <div class="field"><span class="lbl">Namn (valfritt)</span>
-    <input class="fi" id="add-calias" placeholder="Vad ska de heta?"></div>
+  <div class="sh-hdl"></div><div class="sh-t">Lägg till kontakt</div>
+  <div class="sh-s">Ange kontakt-ID direkt, eller skicka/lös in en 256-bit inbjudningskod.</div>
+  <div class="field"><span class="lbl">Kontakt-ID</span><input class="fi" id="add-cid" placeholder="Klistra in kontakt-ID..."></div>
+  <div class="field"><span class="lbl">Namn (valfritt)</span><input class="fi" id="add-calias" placeholder="Vad ska de heta?"></div>
   <button class="primary" onclick="addByID()">Lägg till →</button>
   <div class="hr">inbjudan</div>
-  <div class="field"><span class="lbl">Lös in kod</span>
-    <input class="fi" id="redeem-i" placeholder="Klistra in inbjudningskod..."></div>
+  <div class="field"><span class="lbl">Lös in kod</span><input class="fi" id="redeem-i" placeholder="Klistra in inbjudningskod..."></div>
   <button class="ghost a" onclick="redeemToken()">Lös in →</button>
   <div class="hr">eller</div>
-  <button class="ghost a" onclick="genContactInvite()">Generera din inbjudningskod →</button>
+  <button class="ghost a" onclick="genCInvite()">Generera din inbjudningskod →</button>
   <div id="ci-res" style="display:none;margin-top:4px">
     <div class="token-box"><span class="token-val" id="ci-tv">—</span><button class="copy-btn" onclick="cpEl('ci-tv')">Kopiera</button></div>
     <div class="token-exp" id="ci-exp">Giltig 10 min · engångsanvändning</div>
-    <div class="hint">256-bit — matematiskt omöjlig att gissa. Skicka via valfritt medium.</div>
+    <div class="hint">256-bit — matematiskt omöjlig att gissa.</div>
   </div>
 </div></div>
 
 <!-- CREATE GROUP -->
 <div class="sh-bg" id="sh-create-g" onclick="bgC(event,'sh-create-g')"><div class="sh">
-  <div class="sh-hdl"></div>
-  <div class="sh-title">Skapa grupp</div>
-  <div class="sh-sub">Krypteringsnyckeln deriveras lokalt från namn + lösenord. Servern ser aldrig lösenordet.</div>
-  <div class="field"><span class="lbl">Gruppnamn</span>
-    <input class="fi" id="gc-name" placeholder="Ex: Team Alpha..."></div>
-  <div class="field"><span class="lbl">Lösenord</span>
-    <div class="pw-wrap"><input class="fi" id="gc-pw" type="password" placeholder="Välj ett starkt lösenord..."><button class="pw-eye" onclick="tglPw('gc-pw')">👁</button></div></div>
-  <div class="field"><span class="lbl">Bekräfta lösenord</span>
-    <input class="fi" id="gc-pw2" type="password" placeholder="Upprepa..."></div>
+  <div class="sh-hdl"></div><div class="sh-t">Skapa grupp</div>
+  <div class="sh-s">Krypteringsnyckeln deriveras lokalt från namn + lösenord. Servern ser aldrig lösenordet.</div>
+  <div class="field"><span class="lbl">Gruppnamn</span><input class="fi" id="gc-name" placeholder="Ex: Team Alpha..."></div>
+  <div class="field"><span class="lbl">Lösenord</span><div class="pw-wrap"><input class="fi" id="gc-pw" type="password" placeholder="Starkt lösenord..."><button class="pw-eye" onclick="tglPw('gc-pw')">👁</button></div></div>
+  <div class="field"><span class="lbl">Bekräfta</span><input class="fi" id="gc-pw2" type="password" placeholder="Upprepa..."></div>
   <button class="primary" onclick="createGroup()">Skapa grupp →</button>
 </div></div>
 
 <!-- JOIN GROUP -->
 <div class="sh-bg" id="sh-join-g" onclick="bgC(event,'sh-join-g')"><div class="sh">
-  <div class="sh-hdl"></div>
-  <div class="sh-title">Gå med i grupp</div>
-  <div class="sh-sub">Ange exakt samma namn och lösenord som skaparen använde. Alternativt lös in en inbjudningskod.</div>
-  <div class="field"><span class="lbl">Gruppnamn</span>
-    <input class="fi" id="gj-name" placeholder="Exakt gruppnamn..."></div>
-  <div class="field"><span class="lbl">Lösenord</span>
-    <div class="pw-wrap"><input class="fi" id="gj-pw" type="password" placeholder="Lösenord..."><button class="pw-eye" onclick="tglPw('gj-pw')">👁</button></div></div>
+  <div class="sh-hdl"></div><div class="sh-t">Gå med i grupp</div>
+  <div class="sh-s">Ange exakt samma namn och lösenord som skaparen använde.</div>
+  <div class="field"><span class="lbl">Gruppnamn</span><input class="fi" id="gj-name" placeholder="Exakt gruppnamn..."></div>
+  <div class="field"><span class="lbl">Lösenord</span><div class="pw-wrap"><input class="fi" id="gj-pw" type="password" placeholder="Lösenord..."><button class="pw-eye" onclick="tglPw('gj-pw')">👁</button></div></div>
   <button class="primary" onclick="joinGrpByPw()">Gå med →</button>
   <div class="hr">eller via inbjudningskod</div>
-  <div class="field"><span class="lbl">Inbjudningskod</span>
-    <input class="fi" id="gj-tok" placeholder="Klistra in kod..."></div>
+  <div class="field"><span class="lbl">Inbjudningskod</span><input class="fi" id="gj-tok" placeholder="Klistra in kod..."></div>
   <button class="ghost a" onclick="redeemGrpToken()">Lös in →</button>
 </div></div>
 
 <!-- RENAME -->
 <div class="sh-bg" id="sh-rename" onclick="bgC(event,'sh-rename')"><div class="sh">
-  <div class="sh-hdl"></div>
-  <div class="sh-title">Byt alias</div>
-  <div class="sh-sub">Alla kontakter ser det nya alias-et automatiskt.</div>
+  <div class="sh-hdl"></div><div class="sh-t">Byt alias</div>
+  <div class="sh-s">Alla kontakter ser det nya alias-et automatiskt.</div>
   <div class="alias-row" style="margin-bottom:14px">
     <input class="fi" id="rename-i" maxlength="24" placeholder="Nytt alias...">
     <button class="regen-btn" onclick="regen('rename-i')">↺</button>
@@ -683,129 +712,181 @@ html,body{height:100%;height:100dvh;background:var(--bg);color:var(--t1);
   <button class="primary" onclick="confirmRename()">Spara →</button>
 </div></div>
 
-<!-- TIMER -->
+<!-- TIMER (profile level) -->
 <div class="sh-bg" id="sh-timer" onclick="bgC(event,'sh-timer')"><div class="sh">
-  <div class="sh-hdl"></div>
-  <div class="sh-title">Självförstörande meddelanden</div>
-  <div class="sh-sub">Nya meddelanden raderas automatiskt — lokalt och hos mottagaren.</div>
-  <button class="ghost" data-v="0" onclick="setTimer(this)">Av</button>
-  <button class="ghost" data-v="30" onclick="setTimer(this)">30 sekunder</button>
-  <button class="ghost" data-v="60" onclick="setTimer(this)">1 minut</button>
-  <button class="ghost" data-v="300" onclick="setTimer(this)">5 minuter</button>
-  <button class="ghost" data-v="3600" onclick="setTimer(this)">1 timme</button>
-  <button class="ghost" data-v="86400" onclick="setTimer(this)">1 dag</button>
+  <div class="sh-hdl"></div><div class="sh-t">Standard självförstörande</div>
+  <div class="sh-s">Gäller alla nya chattar. Kan ändras per chatt i chattmenyn.</div>
+  <button class="ghost" data-v="0" onclick="setGlobalTimer(this)">Av (standard)</button>
+  <button class="ghost" data-v="30" onclick="setGlobalTimer(this)">30 sekunder</button>
+  <button class="ghost" data-v="60" onclick="setGlobalTimer(this)">1 minut</button>
+  <button class="ghost" data-v="300" onclick="setGlobalTimer(this)">5 minuter</button>
+  <button class="ghost" data-v="3600" onclick="setGlobalTimer(this)">1 timme</button>
+  <button class="ghost" data-v="86400" onclick="setGlobalTimer(this)">1 dag</button>
+</div></div>
+
+<!-- TIMER (per-chat) -->
+<div class="sh-bg" id="sh-chat-timer" onclick="bgC(event,'sh-chat-timer')"><div class="sh">
+  <div class="sh-hdl"></div><div class="sh-t" id="ct-title">Självförstörande meddelanden</div>
+  <div class="sh-s">Gäller endast denna chatt/grupp.</div>
+  <button class="ghost" data-v="0" onclick="setChatTimer(this)">Av</button>
+  <button class="ghost" data-v="30" onclick="setChatTimer(this)">30 sekunder</button>
+  <button class="ghost" data-v="60" onclick="setChatTimer(this)">1 minut</button>
+  <button class="ghost" data-v="300" onclick="setChatTimer(this)">5 minuter</button>
+  <button class="ghost" data-v="3600" onclick="setChatTimer(this)">1 timme</button>
+  <button class="ghost" data-v="86400" onclick="setChatTimer(this)">1 dag</button>
 </div></div>
 
 <!-- THEME -->
 <div class="sh-bg" id="sh-theme" onclick="bgC(event,'sh-theme')"><div class="sh">
-  <div class="sh-hdl"></div>
-  <div class="sh-title">Tema & accent</div>
-  <div class="sh-sub">Välj accentfärg för appen.</div>
-  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
-    <button onclick="setAccent('#2f7ff5','Blå')" style="width:44px;height:44px;border-radius:50%;background:#2f7ff5;border:none;cursor:pointer;font-size:20px">✓</button>
-    <button onclick="setAccent('#2dd36f','Grön')" style="width:44px;height:44px;border-radius:50%;background:#2dd36f;border:none;cursor:pointer"></button>
-    <button onclick="setAccent('#a060f8','Lila')" style="width:44px;height:44px;border-radius:50%;background:#a060f8;border:none;cursor:pointer"></button>
-    <button onclick="setAccent('#ff453a','Röd')" style="width:44px;height:44px;border-radius:50%;background:#ff453a;border:none;cursor:pointer"></button>
-    <button onclick="setAccent('#ffd60a','Gul')" style="width:44px;height:44px;border-radius:50%;background:#ffd60a;border:none;cursor:pointer"></button>
-    <button onclick="setAccent('#e84090','Rosa')" style="width:44px;height:44px;border-radius:50%;background:#e84090;border:none;cursor:pointer"></button>
-    <button onclick="setAccent('#32d4e8','Teal')" style="width:44px;height:44px;border-radius:50%;background:#32d4e8;border:none;cursor:pointer"></button>
-  </div>
-  <div class="sh-lbl">Bakgrund</div>
-  <button class="ghost" onclick="setBg('#0c0c0f','Svart')">⬛ Svart (standard)</button>
-  <button class="ghost" onclick="setBg('#0a1628','Marinblå')">🌃 Marinblå</button>
-  <button class="ghost" onclick="setBg('#0f0f0f','Pure Black')">⚫ Pure Black (OLED)</button>
+  <div class="sh-hdl"></div><div class="sh-t">Tema</div>
+  <div class="sh-s">Välj utseende för appen.</div>
+  <button class="ghost" onclick="setTheme('dark','Svart')">⬛ Svart (standard)</button>
+  <button class="ghost" onclick="setTheme('navy','Marinblå')">🌃 Marinblå</button>
+  <button class="ghost" onclick="setTheme('light','Ljust')">☀️ Ljust</button>
 </div></div>
 
-<!-- CHAT MENU (1-on-1) -->
+<!-- CHAT BACKGROUND -->
+<div class="sh-bg" id="sh-chat-bg" onclick="bgC(event,'sh-chat-bg')"><div class="sh">
+  <div class="sh-hdl"></div><div class="sh-t">Chattbakgrund</div>
+  <div class="sh-s">Välj ett mönster för alla chattar.</div>
+  <button class="ghost" onclick="setChatBg('')">Ingen (standard)</button>
+  <button class="ghost" onclick="setChatBg('bg-dots')">· · · Punkter</button>
+  <button class="ghost" onclick="setChatBg('bg-lines')">─ ─ ─ Linjer</button>
+</div></div>
+
+<!-- CHAT MENU -->
 <div class="sh-bg" id="sh-c-menu" onclick="bgC(event,'sh-c-menu')"><div class="sh">
   <div class="sh-hdl"></div>
-  <div class="sh-title" id="cm-name">—</div>
+  <div class="sh-t" id="cm-name">—</div>
   <div style="font-size:11px;color:var(--t3);font-family:monospace;word-break:break-all;margin-bottom:12px" id="cm-id">—</div>
-  <div id="cm-key-info" style="padding:10px 12px;border-radius:10px;font-size:12px;margin-bottom:14px;line-height:1.6;border:1px solid"></div>
+  <div id="cm-key-info" style="padding:10px 12px;border-radius:12px;font-size:12px;margin-bottom:14px;line-height:1.6;border:1px solid var(--b2)"></div>
   <button class="ghost" onclick="cpText(activeChat||'')">⎘ Kopiera kontakt-ID</button>
   <button class="ghost a" onclick="genChatInvite()">🔗 Generera inbjudningskod</button>
-  <button class="ghost" onclick="toggleMuteContact()">🔕 Tysta/avtysta kontakt</button>
-  <button class="ghost" onclick="togglePinContact()">📌 Fäst/avfäst chatt</button>
-  <button class="ghost r" onclick="clearChat()">🗑 Rensa chatthistorik</button>
+  <button class="ghost" onclick="openChatTimerSheet()">⏱ Självförstörande för denna chatt</button>
+  <button class="ghost" onclick="toggleMuteC()">🔕 Tysta/avtysta</button>
+  <button class="ghost" onclick="togglePinC()">📌 Fäst/avfäst</button>
+  <button class="ghost r" onclick="clearChat()">🗑 Rensa historik</button>
   <button class="ghost r" onclick="deleteContact()">✕ Ta bort kontakt</button>
 </div></div>
 
 <!-- GROUP MENU -->
 <div class="sh-bg" id="sh-grp-menu" onclick="bgC(event,'sh-grp-menu')"><div class="sh">
   <div class="sh-hdl"></div>
-  <div class="sh-title" id="gm-name">—</div>
+  <div class="sh-t" id="gm-name">—</div>
   <div style="font-size:12px;color:var(--t3);margin-bottom:14px" id="gm-info">—</div>
   <button class="ghost a" onclick="genGrpInvite()">🔗 Generera inbjudan →</button>
   <div id="gi-res" style="display:none;margin-bottom:12px">
     <div class="token-box"><span class="token-val" id="gi-tv">—</span><button class="copy-btn" onclick="cpEl('gi-tv')">Kopiera</button></div>
     <div class="token-exp">Giltig 10 min · engångsanvändning</div>
   </div>
-  <button class="ghost r" onclick="clearGrpChat()">🗑 Rensa grupphistorik</button>
+  <button class="ghost" onclick="openGrpTimerSheet()">⏱ Självförstörande för gruppen</button>
+  <button class="ghost r" onclick="clearGrpChat()">🗑 Rensa historik</button>
   <button class="ghost r" onclick="leaveGroup()">🚪 Lämna grupp</button>
 </div></div>
 
 <!-- CONTACT INFO -->
-<div class="sh-bg" id="sh-contact-info" onclick="bgC(event,'sh-contact-info')"><div class="sh">
+<div class="sh-bg" id="sh-cinfo" onclick="bgC(event,'sh-cinfo')"><div class="sh">
   <div class="sh-hdl"></div>
-  <div id="ci-av-wrap" style="display:flex;justify-content:center;margin-bottom:12px"></div>
-  <div style="text-align:center;font-size:18px;font-weight:700;margin-bottom:4px" id="ci-cname">—</div>
-  <div style="text-align:center;font-size:11px;color:var(--t3);font-family:monospace;word-break:break-all;margin-bottom:18px" id="ci-cid">—</div>
-  <div id="ci-ecdh-status" style="padding:10px;background:var(--s2);border-radius:10px;font-size:12px;margin-bottom:16px;line-height:1.6;border:1px solid var(--b2)"></div>
-  <button class="ghost a" onclick="cSh('sh-contact-info');startCall()">📞 Ring</button>
-  <button class="ghost" onclick="cSh('sh-contact-info');cpText(activeChat||'')">⎘ Kopiera ID</button>
+  <div id="cinfo-av-wrap" style="display:flex;justify-content:center;margin-bottom:14px"></div>
+  <div style="text-align:center;font-size:20px;font-weight:700;margin-bottom:4px" id="cinfo-name">—</div>
+  <div style="text-align:center;font-size:11px;color:var(--t3);font-family:monospace;word-break:break-all;margin-bottom:18px;padding:0 10px" id="cinfo-id">—</div>
+  <div id="cinfo-key" style="padding:10px 12px;background:var(--s2);border-radius:12px;font-size:12px;margin-bottom:16px;line-height:1.6;border:1px solid var(--b2)"></div>
+  <button class="ghost a" onclick="cSh('sh-cinfo');startCall()">📞 Ring</button>
+  <button class="ghost" onclick="cSh('sh-cinfo');cpText(activeChat||'')">⎘ Kopiera ID</button>
 </div></div>
 
 <!-- INCOMING CALL -->
 <div class="sh-bg" id="sh-inc-call"><div class="sh" style="text-align:center">
   <div class="sh-hdl"></div>
   <div style="font-size:64px;margin-bottom:12px" id="ic-av">?</div>
-  <div class="sh-title" id="ic-name">—</div>
+  <div class="sh-t" id="ic-name">—</div>
   <div style="color:var(--t3);font-size:13px;margin:8px 0 6px">Inkommande samtal</div>
   <div class="enc-pill" style="margin:0 auto 24px">🔒 DTLS-SRTP krypterat</div>
   <div style="display:flex;gap:14px">
-    <button onclick="rejectCall()" style="flex:1;padding:14px;background:rgba(255,69,58,.15);border:1.5px solid rgba(255,69,58,.3);border-radius:12px;color:var(--red);font-size:16px;cursor:pointer;font-family:inherit">📵 Avvisa</button>
-    <button onclick="acceptCall()" style="flex:1;padding:14px;background:rgba(45,211,111,.15);border:1.5px solid rgba(45,211,111,.3);border-radius:12px;color:var(--grn);font-size:16px;cursor:pointer;font-family:inherit">📞 Svara</button>
+    <button onclick="rejectCall()" style="flex:1;padding:14px;background:rgba(255,69,58,.15);border:1.5px solid rgba(255,69,58,.3);border-radius:14px;color:var(--red);font-size:16px;cursor:pointer;font-family:inherit;transition:transform .1s" ontouchstart="" onactive="">📵 Avvisa</button>
+    <button onclick="acceptCall()" style="flex:1;padding:14px;background:rgba(48,208,104,.15);border:1.5px solid rgba(48,208,104,.3);border-radius:14px;color:var(--grn);font-size:16px;cursor:pointer;font-family:inherit">📞 Svara</button>
   </div>
 </div></div>
 
 <!-- PWA GUIDE -->
 <div class="sh-bg" id="sh-pwa" onclick="bgC(event,'sh-pwa')"><div class="sh">
-  <div class="sh-hdl"></div>
-  <div class="sh-title">📲 Installera LibraOS</div>
-  <div style="background:var(--s2);border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid var(--b1)">
+  <div class="sh-hdl"></div><div class="sh-t">📲 Installera LibraOS</div>
+  <div style="background:var(--s2);border-radius:16px;padding:18px;margin-bottom:12px;border:1px solid var(--b1)">
     <div style="font-weight:700;margin-bottom:10px;color:#5a9cf8">iPhone / iPad — Safari</div>
-    <div style="font-size:14px;color:var(--t2);line-height:1.9">1. Öppna LibraOS i <b style="color:var(--t1)">Safari</b><br>2. Tryck <b style="color:var(--t1)">Dela</b> 📤 (ikonen i botten)<br>3. Välj <b style="color:var(--t1)">"Lägg till på hemskärmen"</b><br>4. Tryck <b style="color:var(--t1)">"Lägg till"</b> — klart! 🎉</div>
+    <div style="font-size:14px;color:var(--t2);line-height:2">1. Öppna LibraOS i <b style="color:var(--t1)">Safari</b><br>2. Tryck <b style="color:var(--t1)">Dela</b> 📤 (ikonen i botten)<br>3. Välj <b style="color:var(--t1)">"Lägg till på hemskärmen"</b><br>4. Tryck <b style="color:var(--t1)">"Lägg till"</b> — klart 🎉</div>
   </div>
-  <div style="background:var(--s2);border-radius:12px;padding:16px;border:1px solid var(--b1)">
+  <div style="background:var(--s2);border-radius:16px;padding:18px;border:1px solid var(--b1)">
     <div style="font-weight:700;margin-bottom:10px;color:var(--grn)">Android — Chrome</div>
-    <div style="font-size:14px;color:var(--t2);line-height:1.9">1. Öppna i <b style="color:var(--t1)">Chrome</b><br>2. Tryck <b style="color:var(--t1)">⋮</b> uppe till höger<br>3. Välj <b style="color:var(--t1)">"Installera app"</b> eller "Lägg till på startskärm"<br>4. Tryck <b style="color:var(--t1)">"Installera"</b> — klart! 🎉</div>
+    <div style="font-size:14px;color:var(--t2);line-height:2">1. Öppna i <b style="color:var(--t1)">Chrome</b><br>2. Tryck <b style="color:var(--t1)">⋮</b> uppe till höger<br>3. Välj <b style="color:var(--t1)">"Installera app"</b><br>4. Tryck <b style="color:var(--t1)">"Installera"</b> — klart 🎉</div>
   </div>
-  <div class="hint" style="margin-top:12px">Appen startar utan webbläsarens UI, fungerar offline och ser ut och känns som Signal eller Telegram.</div>
+  <div class="hint" style="margin-top:14px">Appen startar utan webbläsarens UI och ser ut som Signal eller Telegram.</div>
 </div></div>
 
 <!-- VPN GUIDE -->
 <div class="sh-bg" id="sh-vpn" onclick="bgC(event,'sh-vpn')"><div class="sh">
-  <div class="sh-hdl"></div>
-  <div class="sh-title">🔒 VPN & Anonymitet</div>
-  <div class="sh-sub">LibraOS krypterar allt meddelandeinnehåll. En VPN döljer dessutom din IP-adress och att du kommunicerar.</div>
-  <div class="card">
-    <div class="cr"><div class="cr-ico" style="background:rgba(255,159,10,.12);color:#ff9f0a">🦔</div><div class="cr-info"><div class="cr-label">Mullvad VPN</div><div class="cr-val">mullvad.net · 5€/mån · Accepterar kontant & krypto · Bäst för anonymitet</div></div></div>
-    <div class="cr"><div class="cr-ico" style="background:rgba(45,211,111,.1);color:var(--grn)">🛡</div><div class="cr-info"><div class="cr-label">ProtonVPN</div><div class="cr-val">protonvpn.com · Gratis tier finns · Schweiz · Öppen källkod</div></div></div>
-    <div class="cr"><div class="cr-ico" style="background:var(--acc3);color:var(--acc)">🧅</div><div class="cr-info"><div class="cr-label">Tor Browser</div><div class="cr-val">torproject.org · Maximal anonymitet · Gratis · Långsammare</div></div></div>
+  <div class="sh-hdl"></div><div class="sh-t">🌐 VPN & Anonymitet</div>
+  <div class="sh-s">LibraOS krypterar allt meddelandeinnehåll med AES-256-GCM. En VPN döljer dessutom din IP-adress och att du överhuvudtaget kommunicerar. Kombinationen ger maximal integritet.</div>
+  <div style="background:var(--s2);border-radius:16px;padding:18px;margin-bottom:14px;border:1px solid var(--b1)">
+    <div style="font-weight:700;margin-bottom:4px;color:var(--t1)">🦔 Mullvad VPN</div>
+    <div style="font-size:13px;color:var(--t2);line-height:1.8;margin-bottom:8px">Bäst för anonymitet. 5€/mån. Accepterar kontant och krypto — inget konto krävs. Ingen loggning. Öppen källkod. Rekommenderas av EFF och journalister globalt.</div>
+    <div style="font-size:12px;color:var(--acc)">mullvad.net</div>
   </div>
-  <div class="hint"><b>LibraOS + Mullvad</b> = meddelandeinnehåll E2E-krypterat <b>och</b> IP-adress helt dold. Jämförbart med professionella journalistiska säkerhetsverktyg.</div>
+  <div style="background:var(--s2);border-radius:16px;padding:18px;margin-bottom:14px;border:1px solid var(--b1)">
+    <div style="font-weight:700;margin-bottom:4px;color:var(--t1)">🛡 ProtonVPN</div>
+    <div style="font-size:13px;color:var(--t2);line-height:1.8;margin-bottom:8px">Gratis tier finns (obegränsad data). Schweizisk jurisdiktion. Öppen källkod. Integrerat med ProtonMail. Bra för nybörjare.</div>
+    <div style="font-size:12px;color:var(--acc)">protonvpn.com</div>
+  </div>
+  <div style="background:var(--s2);border-radius:16px;padding:18px;margin-bottom:14px;border:1px solid var(--b1)">
+    <div style="font-weight:700;margin-bottom:4px;color:var(--t1)">🧅 Tor Browser</div>
+    <div style="font-size:13px;color:var(--t2);line-height:1.8;margin-bottom:8px">Gratis. Tre lager kryptering via tre olika servrar. Maximal anonymitet — ingen vet din ursprungliga IP. Långsammare. Bäst för extremt känslig kommunikation. Kan också köra LibraOS via Tor Browser.</div>
+    <div style="font-size:12px;color:var(--acc)">torproject.org</div>
+  </div>
+  <div style="background:rgba(47,127,245,.08);border:1px solid rgba(47,127,245,.2);border-radius:16px;padding:16px">
+    <div style="font-weight:700;margin-bottom:6px;color:var(--acc)">💡 Kombinera för maximal säkerhet</div>
+    <div style="font-size:13px;color:var(--t2);line-height:1.7">LibraOS (E2E-kryptering av innehåll) + Mullvad (döljer IP och trafik) = kommunikation i klass med professionella säkerhetslösningar som används av journalister och aktivister. Din ISP ser bara att du pratar med Mullvad-servern — ingenting annat.</div>
+  </div>
 </div></div>
 
 <!-- SECURITY INFO -->
-<div class="sh-bg" id="sh-security-info" onclick="bgC(event,'sh-security-info')"><div class="sh">
-  <div class="sh-hdl"></div>
-  <div class="sh-title">🔐 Säkerhetsarkitektur</div>
-  <div class="card">
-    <div class="cr"><div class="cr-ico" style="background:rgba(45,211,111,.1);color:var(--grn)">1</div><div class="cr-info"><div class="cr-label">ECDH P-256</div><div class="cr-val">Ephemeral nyckelutbyte per chatt-session. Ger Forward Secrecy — gamla meddelanden kan inte dekrypteras om en nyckel läcker.</div></div></div>
-    <div class="cr"><div class="cr-ico" style="background:rgba(45,211,111,.1);color:var(--grn)">2</div><div class="cr-info"><div class="cr-label">AES-256-GCM</div><div class="cr-val">Militärstandard symmetrisk kryptering. Varje meddelande har unik 96-bit slumpmässig IV. Autentiserat kryptogram — manipulation detekteras.</div></div></div>
-    <div class="cr"><div class="cr-ico" style="background:rgba(45,211,111,.1);color:var(--grn)">3</div><div class="cr-info"><div class="cr-label">PBKDF2-SHA256</div><div class="cr-val">200 000 iterationer för gruppnycklar. Gör brute force av lösenord extremt kostsamt.</div></div></div>
-    <div class="cr"><div class="cr-ico" style="background:rgba(45,211,111,.1);color:var(--grn)">4</div><div class="cr-info"><div class="cr-label">DTLS-SRTP</div><div class="cr-val">WebRTC-samtal är krypterade av webbläsaren med DTLS handshake och SRTP mediastream.</div></div></div>
-    <div class="cr"><div class="cr-ico" style="background:rgba(45,211,111,.1);color:var(--grn)">5</div><div class="cr-info"><div class="cr-label">Relay-server</div><div class="cr-val">Ser endast krypterade blobs och routing-ID. Ingen nyckel, inget lösenord, inget innehåll passerar i klartext.</div></div></div>
+<div class="sh-bg" id="sh-sec-info" onclick="bgC(event,'sh-sec-info')"><div class="sh">
+  <div class="sh-hdl"></div><div class="sh-t">🔐 Säkerhetsarkitektur</div>
+  <div class="sh-s">Hur LibraOS skyddar din kommunikation i detalj.</div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="background:var(--s2);border-radius:16px;padding:16px;border:1px solid var(--b1)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="width:32px;height:32px;border-radius:10px;background:rgba(48,208,104,.1);color:var(--grn);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">1</div>
+        <div style="font-weight:700;font-size:15px">ECDH P-256 — Forward Secrecy</div>
+      </div>
+      <div style="font-size:13px;color:var(--t2);line-height:1.7">Varje chat-session genererar ett unikt Elliptic Curve Diffie-Hellman nyckelpar. Parterna byter publika nycklar och beräknar en delad hemlighet lokalt — den skickas aldrig över nätverket. Sessionsnyckeln lever bara i minnet och raderas när appen stängs. Gamla meddelanden kan inte dekrypteras om en framtida nyckel läcker.</div>
+    </div>
+    <div style="background:var(--s2);border-radius:16px;padding:16px;border:1px solid var(--b1)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="width:32px;height:32px;border-radius:10px;background:rgba(48,208,104,.1);color:var(--grn);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">2</div>
+        <div style="font-weight:700;font-size:15px">AES-256-GCM — Innehållskryptering</div>
+      </div>
+      <div style="font-size:13px;color:var(--t2);line-height:1.7">Varje meddelande krypteras med AES-256 i GCM-läge (Galois/Counter Mode). Varje meddelande har en unik 96-bit slumpmässig IV (Initialization Vector). GCM ger autentisering — om en angripare manipulerar kryptotexten detekteras det och meddelandet avvisas.</div>
+    </div>
+    <div style="background:var(--s2);border-radius:16px;padding:16px;border:1px solid var(--b1)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="width:32px;height:32px;border-radius:10px;background:rgba(48,208,104,.1);color:var(--grn);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">3</div>
+        <div style="font-weight:700;font-size:15px">PBKDF2-SHA256 — Grupplösenord</div>
+      </div>
+      <div style="font-size:13px;color:var(--t2);line-height:1.7">Gruppnycklar deriveras från namn + lösenord med 200 000 PBKDF2-iterationer. Det gör brute force extremt kostsamt — en angripare som försöker alla möjliga lösenord mot ett grupplösenord måste göra 200 000 hash-beräkningar per försök.</div>
+    </div>
+    <div style="background:var(--s2);border-radius:16px;padding:16px;border:1px solid var(--b1)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="width:32px;height:32px;border-radius:10px;background:rgba(48,208,104,.1);color:var(--grn);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">4</div>
+        <div style="font-weight:700;font-size:15px">DTLS-SRTP — Samtalskryptering</div>
+      </div>
+      <div style="font-size:13px;color:var(--t2);line-height:1.7">Röstsamtal krypteras av webbläsaren med WebRTC:s inbyggda DTLS handshake och SRTP mediaprotokoll. LibraOS lägger ovanpå ett eget krypterat signaleringsprotokoll för att skydda samtalsetableringen.</div>
+    </div>
+    <div style="background:var(--s2);border-radius:16px;padding:16px;border:1px solid var(--b1)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="width:32px;height:32px;border-radius:10px;background:rgba(47,127,245,.1);color:var(--acc);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">5</div>
+        <div style="font-weight:700;font-size:15px">Relay-server</div>
+      </div>
+      <div style="font-size:13px;color:var(--t2);line-height:1.7">Relay-servern ser only krypterade blobs och routing-ID. Den har aldrig tillgång till nycklar, lösenord eller meddelandeinnehåll. Offline-meddelanden köas krypterat i max 48 timmar.</div>
+    </div>
   </div>
 </div></div>
 
@@ -818,36 +899,46 @@ html,body{height:100%;height:100dvh;background:var(--bg);color:var(--t1);
   <div class="ctx-i" onclick="closeCtx()">Avbryt</div>
 </div>
 
-<div class="lightbox" id="lb" onclick="closeLb()">
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lb">
+  <button class="lb-close" id="lb-close">✕</button>
   <img id="lb-img" src="" alt="">
 </div>
+
+<!-- SCREEN LOCK (background protection) -->
+<div id="screen-lock">
+  <div class="lock-icon">⚖</div>
+  <div style="font-size:20px;font-weight:700">LibraOS-4677</div>
+  <div class="lock-hint">Öppna appen för att fortsätta</div>
+</div>
+
 <audio id="call-audio" autoplay playsinline></audio>
 
-<!-- ════════════════════════════════════════════════════════
-     JAVASCRIPT
-════════════════════════════════════════════════════════ -->
 <script>
 'use strict';
-// ═══════════════════════════════════════════════════════════════════════════
-//  LibraOS-4677  v6  —  Full Application
-//  Security stack: AES-256-GCM + ECDH-P256 Forward Secrecy + PBKDF2/200k
-// ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
+//  LibraOS-4677  v7  —  Full Application
+//  AES-256-GCM + ECDH-P256 Forward Secrecy + PBKDF2/200k + Voice messages
+// ═══════════════════════════════════════════════════════════════════════
 
-const RELAY   = 'wss://libraos-1.onrender.com';
-const EMOJIS  = ['❤️','👍','😂','😮','😢','🔥','✅','🙏'];
-const B62     = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-const ALC     = 'abcdefghjkmnpqrstuvwxyz0123456789@#!$&*-+~';
-const AVC     = ['av0','av1','av2','av3','av4','av5'];
-const ICE_CFG = { iceServers:[
-  {urls:'stun:stun.l.google.com:19302'},
-  {urls:'stun:stun1.l.google.com:19302'},
-  {urls:'stun:stun.cloudflare.com:3478'},
-  {urls:'turn:a.relay.metered.ca:80',    username:'e8dd65f0a1a4e4f4bfd6',credential:'uRhQzHQdqmH9CNMF'},
-  {urls:'turn:a.relay.metered.ca:443',   username:'e8dd65f0a1a4e4f4bfd6',credential:'uRhQzHQdqmH9CNMF'},
-  {urls:'turns:a.relay.metered.ca:443',  username:'e8dd65f0a1a4e4f4bfd6',credential:'uRhQzHQdqmH9CNMF'},
-], iceCandidatePoolSize:10, bundlePolicy:'max-bundle', rtcpMuxPolicy:'require' };
+const RELAY  = 'wss://libraos-1.onrender.com';
+const EMOJIS = ['❤️','👍','😂','😮','😢','🔥','✅','🙏','😎','🎉'];
+const B62    = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const ALC    = 'abcdefghjkmnpqrstuvwxyz0123456789@#!$&*-+~';
+const AVC    = ['av0','av1','av2','av3','av4','av5'];
+const ICE    = {
+  iceServers:[
+    {urls:'stun:stun.l.google.com:19302'},
+    {urls:'stun:stun1.l.google.com:19302'},
+    {urls:'stun:stun.cloudflare.com:3478'},
+    {urls:'turn:a.relay.metered.ca:80',    username:'e8dd65f0a1a4e4f4bfd6',credential:'uRhQzHQdqmH9CNMF'},
+    {urls:'turn:a.relay.metered.ca:443',   username:'e8dd65f0a1a4e4f4bfd6',credential:'uRhQzHQdqmH9CNMF'},
+    {urls:'turns:a.relay.metered.ca:443',  username:'e8dd65f0a1a4e4f4bfd6',credential:'uRhQzHQdqmH9CNMF'},
+  ],
+  iceCandidatePoolSize:10,bundlePolicy:'max-bundle',rtcpMuxPolicy:'require'
+};
 
-// ─── Pure utilities ────────────────────────────────────────────────
+// ─── Utilities ─────────────────────────────────────────────────────
 function rndBytes(n){ return crypto.getRandomValues(new Uint8Array(n)); }
 function rndId(n)   { return Array.from(rndBytes(n)).map(x=>B62[x%B62.length]).join(''); }
 function rndAlias() { return Array.from(rndBytes(8)).map(x=>ALC[x%ALC.length]).join(''); }
@@ -855,58 +946,55 @@ function avCls(id)  { return AVC[(id.charCodeAt(0)+id.charCodeAt(1||0))%AVC.leng
 function esc(s)     { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function b64e(u8)   { return btoa(String.fromCharCode(...u8)); }
 function b64d(s)    { return new Uint8Array(atob(s).split('').map(c=>c.charCodeAt(0))); }
-function regen(id)  { const el=document.getElementById(id); if(el) el.value=rndAlias(); }
-function tglPw(id)  { const el=document.getElementById(id); if(el) el.type=el.type==='password'?'text':'password'; }
+function regen(id)  { const el=document.getElementById(id);if(el)el.value=rndAlias(); }
+function tglPw(id)  { const el=document.getElementById(id);if(el)el.type=el.type==='password'?'text':'password'; }
 function cpText(t)  { navigator.clipboard.writeText(String(t||'')).catch(()=>{}); }
 function cpEl(id)   { cpText(document.getElementById(id)?.textContent?.trim()||''); }
 function cpMyId()   { cpText(ME.id); }
 function trig(id)   { document.getElementById(id)?.click(); }
 function dlFile(d,n){ const a=document.createElement('a');a.href=d;a.download=n||'file';a.click(); }
-function tglPwBtn(id){ const el=document.getElementById(id);if(el)el.type=el.type==='password'?'text':'password'; }
-
 function fmtTime(ts){ return new Date(ts).toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'}); }
 function fmtDate(ts){
   const d=new Date(ts),n=new Date();
   if(d.toDateString()===n.toDateString()) return 'Idag';
-  const y=new Date(n-86400000);
-  if(d.toDateString()===y.toDateString()) return 'Igår';
-  return d.toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:d.getFullYear()!==n.getFullYear()?'numeric':undefined});
+  if(new Date(n-86400000).toDateString()===d.toDateString()) return 'Igår';
+  return d.toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
 }
 function fmtTimer(s){
-  if(!s)return'Av';
-  if(s<60)return s+'s';
+  if(!s)return'Av';if(s<60)return s+'s';
   if(s<3600){const m=Math.floor(s/60),r=s%60;return r?`${m}m ${r}s`:`${m}m`;}
   if(s<86400){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return m?`${h}h ${m}m`:`${h}h`;}
   return Math.floor(s/86400)+'d';
 }
 function fmtBytes(n){if(!n)return'';if(n<1024)return n+'B';if(n<1048576)return(n/1024).toFixed(1)+'KB';return(n/1048576).toFixed(1)+'MB';}
+function fmtDuration(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 
 // ─── State ─────────────────────────────────────────────────────────
 function freshState(){
-  return { id:rndId(32), alias:rndAlias(), msgTimer:0, accent:'#2f7ff5', bgColor:'#0c0c0f',
-    contacts:{}, groups:{}, started:false };
+  return {
+    id:rndId(32), alias:rndAlias(), msgTimer:0, theme:'dark', chatBg:'',
+    contacts:{},  // id→{id,alias,messages:[],unread:0,muted:bool,pinned:bool,timer:int}
+    groups:{},    // gid→{id,name,password,members:[],messages:[],timer:int}
+    notes:[],     // [{id,title,body,ts}]
+    started:false,
+  };
 }
-function loadState(){
-  try{const s=localStorage.getItem('_lb8');if(s)return JSON.parse(s);}catch{}
-  return freshState();
-}
-function save(){ try{localStorage.setItem('_lb8',JSON.stringify(ME));}catch{} }
-
+function loadState(){ try{const s=localStorage.getItem('_lb9');if(s)return JSON.parse(s);}catch{} return freshState(); }
+function save(){ try{localStorage.setItem('_lb9',JSON.stringify(ME));}catch{} }
 const ME = loadState();
 
 // ─── Crypto core ───────────────────────────────────────────────────
-const _KC = {};
-async function deriveAES(secret, salt){
-  const k=secret+'|'+salt; if(_KC[k])return _KC[k];
+const _KC={};
+async function deriveAES(secret,salt){
+  const k=secret+'|'+salt;if(_KC[k])return _KC[k];
   const enc=new TextEncoder();
   const km=await crypto.subtle.importKey('raw',enc.encode(secret),'PBKDF2',false,['deriveKey']);
-  const key=await crypto.subtle.deriveKey(
-    {name:'PBKDF2',salt:enc.encode(salt),iterations:200000,hash:'SHA-256'},
-    km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
-  _KC[k]=key; return key;
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:enc.encode(salt),iterations:200000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  _KC[k]=key;return key;
 }
-async function grpKey(name,pw){ return deriveAES(name+'‖'+pw,'libra-grp-v6'); }
-async function fallbackKey(peerId){ return deriveAES([ME.id,peerId].sort().join('‖'),'libra-fb-v6'); }
+async function grpKey(name,pw){ return deriveAES(name+'‖'+pw,'libra-grp-v7'); }
+async function fbKey(pid){ return deriveAES([ME.id,pid].sort().join('‖'),'libra-fb-v7'); }
+async function notesKey(){ return deriveAES(ME.id,'libra-notes-v7'); }
 
 async function encO(obj,key){
   const iv=rndBytes(12);
@@ -914,79 +1002,49 @@ async function encO(obj,key){
   return {iv:b64e(iv),ct:b64e(new Uint8Array(ct))};
 }
 async function decO(d,key){
-  try{
-    const iv=b64d(d.iv),ct=b64d(d.ct);
-    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
-    return JSON.parse(new TextDecoder().decode(pt));
-  }catch{return null;}
+  try{const iv=b64d(d.iv),ct=b64d(d.ct);const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);return JSON.parse(new TextDecoder().decode(pt));}catch{return null;}
 }
 
 // ─── ECDH session manager ──────────────────────────────────────────
-// Per-contact ephemeral ECDH P-256 key exchange → AES-256-GCM session key
-// Provides Forward Secrecy: session key lives only in memory
-const SESS = {}; // contactId → { kp, pubRaw, sharedKey, ok, pending:[] }
-
+const SESS={};
 async function ecdhInit(cid){
-  if(SESS[cid]?.ok) return;
-  if(SESS[cid]) return; // already in progress
-  const kp = await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveKey']);
-  const pubRaw = await crypto.subtle.exportKey('raw',kp.publicKey);
-  SESS[cid] = {kp, pubRaw, sharedKey:null, ok:false, pending:[]};
+  if(SESS[cid])return;
+  const kp=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveKey']);
+  const pubRaw=await crypto.subtle.exportKey('raw',kp.publicKey);
+  SESS[cid]={kp,pubRaw,sharedKey:null,ok:false,pending:[]};
   await dmRaw(cid,{type:'ECDH_HELLO',pub:b64e(new Uint8Array(pubRaw)),from:ME.id});
 }
-
-async function ecdhReceive(cid, pub64, isReply){
-  const theirPub = await crypto.subtle.importKey('raw',b64d(pub64),{name:'ECDH',namedCurve:'P-256'},false,[]);
-  let s = SESS[cid];
+async function ecdhRecv(cid,pub64,isReply){
+  const theirPub=await crypto.subtle.importKey('raw',b64d(pub64),{name:'ECDH',namedCurve:'P-256'},false,[]);
+  let s=SESS[cid];
   if(!s){
-    // We haven't initiated — generate and respond
     const kp=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveKey']);
     const pubRaw=await crypto.subtle.exportKey('raw',kp.publicKey);
-    s={kp,pubRaw,sharedKey:null,ok:false,pending:[]};
-    SESS[cid]=s;
-    if(!isReply) await dmRaw(cid,{type:'ECDH_REPLY',pub:b64e(new Uint8Array(pubRaw)),from:ME.id});
+    s={kp,pubRaw,sharedKey:null,ok:false,pending:[]};SESS[cid]=s;
+    if(!isReply)await dmRaw(cid,{type:'ECDH_REPLY',pub:b64e(new Uint8Array(pubRaw)),from:ME.id});
   }
-  s.sharedKey = await crypto.subtle.deriveKey(
-    {name:'ECDH',public:theirPub},s.kp.privateKey,
-    {name:'AES-GCM',length:256},false,['encrypt','decrypt']);
-  s.ok = true;
-  updateKeyBanner(cid);
-  // Flush pending DMs
-  for(const p of s.pending) await _dmEnc(cid,p);
+  s.sharedKey=await crypto.subtle.deriveKey({name:'ECDH',public:theirPub},s.kp.privateKey,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  s.ok=true;
+  updKeyBanner(cid);
+  for(const p of s.pending)await _dmEnc(cid,p);
   s.pending=[];
 }
-
-async function sessKey(cid){
-  const s=SESS[cid];
-  if(s?.ok) return s.sharedKey;
-  return fallbackKey(cid);
-}
-
-function updateKeyBanner(cid){
-  if(activeChat!==cid) return;
-  const banner=document.getElementById('c-keybanner');
-  const text=document.getElementById('c-keytext');
-  if(!banner||!text) return;
-  const s=SESS[cid];
-  if(s?.ok){
-    banner.className='keybanner';
-    text.textContent='🔐 ECDH Forward Secrecy aktiv — sessionsnyckeln finns bara i minnet';
-  } else {
-    banner.className='keybanner pending';
-    text.textContent='⏳ Upprättar krypterad session...';
-  }
+async function sessKey(cid){const s=SESS[cid];if(s?.ok)return s.sharedKey;return fbKey(cid);}
+function updKeyBanner(cid){
+  if(activeChat!==cid)return;
+  const b=document.getElementById('c-keybanner'),t=document.getElementById('c-keytext');
+  if(!b||!t)return;
+  const ok=SESS[cid]?.ok;
+  b.className='keybanner'+(ok?'':' pend');
+  t.textContent=ok?'🔐 ECDH Forward Secrecy aktiv — sessionsnyckel i minnet':'⏳ Upprättar krypterad session...';
 }
 
 // ─── WebSocket ─────────────────────────────────────────────────────
 let ws=null,wsOK=false,wsRtry=null;
 function wsConnect(){
-  if(ws&&(ws.readyState===0||ws.readyState===1)) return;
+  if(ws&&(ws.readyState===0||ws.readyState===1))return;
   try{ws=new WebSocket(RELAY);}catch{wsLater();return;}
-  ws.onopen=()=>{
-    wsOK=true; clearTimeout(wsRtry); setDot(true);
-    wsSend({type:'REGISTER',clientId:ME.id});
-    Object.values(ME.groups).forEach(g=>wsSend({type:'GROUP_JOIN',groupId:g.id}));
-  };
+  ws.onopen=()=>{wsOK=true;clearTimeout(wsRtry);setDot(true);wsSend({type:'REGISTER',clientId:ME.id});Object.values(ME.groups).forEach(g=>wsSend({type:'GROUP_JOIN',groupId:g.id}));};
   ws.onmessage=async e=>{let m;try{m=JSON.parse(e.data);}catch{return;}await onRelay(m);};
   ws.onclose=()=>{wsOK=false;setDot(false);wsLater();};
   ws.onerror=()=>{wsOK=false;setDot(false);};
@@ -995,164 +1053,124 @@ function wsLater(){clearTimeout(wsRtry);wsRtry=setTimeout(wsConnect,4000);}
 function wsSend(o){if(ws&&ws.readyState===1)ws.send(JSON.stringify(o));else wsConnect();}
 function setDot(ok){document.getElementById('cdot')?.classList.toggle('ok',ok);}
 
-// ─── Relay dispatcher ──────────────────────────────────────────────
+// ─── Relay handler ─────────────────────────────────────────────────
 async function onRelay(m){
   switch(m.type){
-    case 'REGISTERED': break;
-    case 'PONG': break;
-    case 'RATE_LIMITED': console.warn('rate limited'); break;
-    case 'OFFLINE': break;
+    case 'REGISTERED':break;case 'PONG':break;case 'RATE_LIMITED':break;case 'OFFLINE':break;
     case 'DM':{
-      // Try ECDH session key first, fallback to derived key
-      let p=null;
-      const s=SESS[m.from];
-      if(s?.ok) p=await decO(m.enc,s.sharedKey);
-      if(!p){ const fk=await fallbackKey(m.from); p=await decO(m.enc,fk); }
-      if(p) await onDM(m.from,p);
-      break;
+      let p=null;const s=SESS[m.from];
+      if(s?.ok)p=await decO(m.enc,s.sharedKey);
+      if(!p){const fk=await fbKey(m.from);p=await decO(m.enc,fk);}
+      if(p)await onDM(m.from,p);break;
     }
     case 'GROUP_MSG':{
-      const g=ME.groups[m.groupId]; if(!g) break;
+      const g=ME.groups[m.groupId];if(!g)break;
       const key=await grpKey(g.name,g.password);
       const p=await decO(m.enc,key);
-      if(p&&p.from!==ME.id) onGrpMsg(m.groupId,p);
-      break;
+      if(p&&p.from!==ME.id)onGrpMsg(m.groupId,p);break;
     }
     case 'INVITE_REDEEMED':{
-      const {fromId,fromAlias,redeemerId,redeemerAlias,groupId}=m;
+      const{fromId,fromAlias,redeemerId,redeemerAlias,groupId}=m;
       if(fromId===ME.id){
         addContact(redeemerId,redeemerAlias||redeemerId.slice(0,8));
         if(groupId&&ME.groups[groupId]){
-          if(!ME.groups[groupId].members.includes(redeemerId)) ME.groups[groupId].members.push(redeemerId);
+          if(!ME.groups[groupId].members.includes(redeemerId))ME.groups[groupId].members.push(redeemerId);
           save();
-          await dmSend(redeemerId,{type:'GRP_KEY_DELIVERY',groupId,name:ME.groups[groupId].name,password:ME.groups[groupId].password,members:ME.groups[groupId].members});
+          await dmSend(redeemerId,{type:'GRP_KEY',groupId,name:ME.groups[groupId].name,password:ME.groups[groupId].password,members:ME.groups[groupId].members});
         }
         renderChats();renderContacts();
-      } else if(redeemerId===ME.id){
-        addContact(fromId,fromAlias||fromId.slice(0,8));
-        save();renderChats();renderContacts();
-      }
+      } else if(redeemerId===ME.id){addContact(fromId,fromAlias||fromId.slice(0,8));save();renderChats();renderContacts();}
       break;
     }
-    case 'INVITE_ACCEPTED': break;
-    case 'INVITE_INVALID': alert(m.reason==='expired'?'Koden har löpt ut (10 min)':'Ogiltig inbjudningskod'); break;
-    default:
-      if(m.type?.startsWith('WEBRTC_')&&m.to===ME.id) await onCallSig(m);
+    case 'INVITE_ACCEPTED':break;
+    case 'INVITE_INVALID':alert(m.reason==='expired'?'Koden har löpt ut':'Ogiltig kod');break;
+    default:if(m.type?.startsWith('WEBRTC_')&&m.to===ME.id)await onCallSig(m);
   }
 }
 
-// ─── DM send/receive ───────────────────────────────────────────────
-async function dmRaw(toId,payload){
-  const key=await fallbackKey(toId);
-  const e=await encO(payload,key);
-  wsSend({type:'DM',to:toId,from:ME.id,enc:e});
-}
-async function _dmEnc(toId,payload){
-  const key=await sessKey(toId);
-  const e=await encO(payload,key);
-  wsSend({type:'DM',to:toId,from:ME.id,enc:e});
-}
+// ─── DM ────────────────────────────────────────────────────────────
+async function dmRaw(toId,payload){const key=await fbKey(toId);const e=await encO(payload,key);wsSend({type:'DM',to:toId,from:ME.id,enc:e});}
+async function _dmEnc(toId,payload){const key=await sessKey(toId);const e=await encO(payload,key);wsSend({type:'DM',to:toId,from:ME.id,enc:e});}
 async function dmSend(toId,payload){
   const s=SESS[toId];
-  if(!s?.ok){
-    if(!s) ecdhInit(toId).catch(()=>{});
-    (SESS[toId]=SESS[toId]||{pending:[]}).pending=SESS[toId].pending||[];
-    SESS[toId].pending.push(payload);
-    return;
-  }
+  if(!s?.ok){if(!s)ecdhInit(toId).catch(()=>{});const es=SESS[toId]||(SESS[toId]={pending:[]});(es.pending=es.pending||[]).push(payload);return;}
   await _dmEnc(toId,payload);
 }
 async function grpSend(gid,payload){
   const g=ME.groups[gid];if(!g)return;
   const key=await grpKey(g.name,g.password);
-  const e=await encO(payload,key);
-  wsSend({type:'GROUP_MSG',groupId:gid,from:ME.id,enc:e});
+  const e=await encO(payload,key);wsSend({type:'GROUP_MSG',groupId:gid,from:ME.id,enc:e});
 }
 
 async function onDM(fromId,p){
   switch(p.type){
-    case 'ECDH_HELLO': await ecdhReceive(fromId,p.pub,false); break;
-    case 'ECDH_REPLY': await ecdhReceive(fromId,p.pub,true); break;
-    case 'HANDSHAKE':
-      addContact(fromId,p.alias||fromId.slice(0,8));
-      renderContacts();renderChats();
-      await dmSend(fromId,{type:'HANDSHAKE_ACK',alias:ME.alias});
-      break;
-    case 'HANDSHAKE_ACK':
-      if(ME.contacts[fromId]){ME.contacts[fromId].alias=p.alias||ME.contacts[fromId].alias;save();renderContacts();renderChats();}
-      break;
-    case 'MESSAGE': recvMsg(fromId,p); break;
-    case 'REACTION': applyRxn(p,fromId,null); break;
-    case 'DELETE_MSG': delMsg(p.msgId,'dm',fromId); break;
-    case 'TYPING': if(activeChat===fromId) showTyp('c',p.alias); break;
-    case 'STOP_TYPING': if(activeChat===fromId) hideTyp('c'); break;
-    case 'RENAME':
-      if(ME.contacts[fromId]){ME.contacts[fromId].alias=p.alias;save();renderContacts();renderChats();if(activeChat===fromId)document.getElementById('c-name').textContent=p.alias;}
-      break;
-    case 'GRP_KEY_DELIVERY':
-      if(!ME.groups[p.groupId]){
-        ME.groups[p.groupId]={id:p.groupId,name:p.name,password:p.password,members:p.members||[ME.id,fromId],messages:[]};
-        save();renderChats();wsSend({type:'GROUP_JOIN',groupId:p.groupId});
-      } break;
-    case 'CALL_END': endCall(true); break;
+    case 'ECDH_HELLO':await ecdhRecv(fromId,p.pub,false);break;
+    case 'ECDH_REPLY':await ecdhRecv(fromId,p.pub,true);break;
+    case 'HANDSHAKE':addContact(fromId,p.alias||fromId.slice(0,8));renderContacts();renderChats();await dmSend(fromId,{type:'HANDSHAKE_ACK',alias:ME.alias});break;
+    case 'HANDSHAKE_ACK':if(ME.contacts[fromId]){ME.contacts[fromId].alias=p.alias||ME.contacts[fromId].alias;save();renderContacts();renderChats();}break;
+    case 'MESSAGE':recvMsg(fromId,p);break;
+    case 'REACTION':applyRxn(p,fromId,null);break;
+    case 'DELETE_MSG':delMsg(p.msgId,'dm',fromId);break;
+    case 'TYPING':if(activeChat===fromId)showTyp('c',p.alias);break;
+    case 'STOP_TYPING':if(activeChat===fromId)hideTyp('c');break;
+    case 'RENAME':if(ME.contacts[fromId]){ME.contacts[fromId].alias=p.alias;save();renderContacts();renderChats();if(activeChat===fromId)document.getElementById('c-name').textContent=p.alias;}break;
+    case 'GRP_KEY':if(!ME.groups[p.groupId]){ME.groups[p.groupId]={id:p.groupId,name:p.name,password:p.password,members:p.members||[ME.id,fromId],messages:[],timer:0};save();renderChats();wsSend({type:'GROUP_JOIN',groupId:p.groupId});}break;
+    case 'CALL_END':endCall(true);break;
   }
 }
-
 function onGrpMsg(gid,p){
-  if(p.type==='MESSAGE') recvGrpMsg(gid,p);
+  if(p.type==='MESSAGE')recvGrpMsg(gid,p);
   else if(p.type==='TYPING'){if(activeGroup===gid)showTyp('g',p.alias);}
   else if(p.type==='STOP_TYPING'){if(activeGroup===gid)hideTyp('g');}
-  else if(p.type==='REACTION') applyRxn(p,null,gid);
-  else if(p.type==='DELETE_MSG') delMsg(p.msgId,'grp',gid);
-  else if(p.type==='MEMBER_JOINED'){
-    const g=ME.groups[gid];
-    if(g&&!g.members.includes(p.memberId)){g.members.push(p.memberId);save();if(activeGroup===gid)updGrpHdr();}
-  }
+  else if(p.type==='REACTION')applyRxn(p,null,gid);
+  else if(p.type==='DELETE_MSG')delMsg(p.msgId,'grp',gid);
+  else if(p.type==='MEMBER_JOINED'){const g=ME.groups[gid];if(g&&!g.members.includes(p.memberId)){g.members.push(p.memberId);save();if(activeGroup===gid)updGrpHdr();}}
 }
 
 // ─── Contacts ──────────────────────────────────────────────────────
 function addContact(id,alias){
   if(id===ME.id)return;
-  if(!ME.contacts[id]) ME.contacts[id]={id,alias:alias||id.slice(0,8),messages:[],unread:0,muted:false,pinned:false};
-  else if(alias) ME.contacts[id].alias=alias;
+  if(!ME.contacts[id])ME.contacts[id]={id,alias:alias||id.slice(0,8),messages:[],unread:0,muted:false,pinned:false,timer:ME.msgTimer};
+  else if(alias)ME.contacts[id].alias=alias;
   save();
 }
 async function addByID(){
   const id=document.getElementById('add-cid').value.trim();
   const alias=document.getElementById('add-calias').value.trim();
-  if(!id) return alert('Ange ett kontakt-ID');
-  if(id===ME.id) return alert('Det är ditt eget ID');
-  addContact(id,alias||id.slice(0,8));
-  save();renderContacts();renderChats();cSh('sh-add-c');
+  if(!id)return alert('Ange ett kontakt-ID');
+  if(id===ME.id)return alert('Det är ditt eget ID');
+  addContact(id,alias||id.slice(0,8));save();renderContacts();renderChats();cSh('sh-add-c');
   ecdhInit(id).catch(()=>{});
   await dmRaw(id,{type:'HANDSHAKE',alias:ME.alias,id:ME.id});
 }
-function genContactInvite(){
-  const tok=rndId(42);
-  wsSend({type:'CREATE_INVITE',token:tok,fromId:ME.id,fromAlias:ME.alias});
+function genCInvite(){
+  const tok=rndId(42);wsSend({type:'CREATE_INVITE',token:tok,fromId:ME.id,fromAlias:ME.alias});
   document.getElementById('ci-tv').textContent=tok;
   document.getElementById('ci-res').style.display='block';
   tokCountdown('ci-exp',600);
 }
-async function redeemToken(){
-  const tok=document.getElementById('redeem-i').value.trim();
-  if(!tok)return alert('Klistra in en kod');
-  wsSend({type:'REDEEM_INVITE',token:tok,myId:ME.id,myAlias:ME.alias});
+async function redeemToken(){const tok=document.getElementById('redeem-i').value.trim();if(!tok)return alert('Klistra in en kod');wsSend({type:'REDEEM_INVITE',token:tok,myId:ME.id,myAlias:ME.alias});}
+function toggleMuteC(){if(!activeChat||!ME.contacts[activeChat])return;ME.contacts[activeChat].muted=!ME.contacts[activeChat].muted;save();cSh('sh-c-menu');renderChats();}
+function togglePinC(){if(!activeChat||!ME.contacts[activeChat])return;ME.contacts[activeChat].pinned=!ME.contacts[activeChat].pinned;save();cSh('sh-c-menu');renderChats();}
+
+// Per-chat timer
+function openChatTimerSheet(){document.getElementById('ct-title').textContent=ME.contacts[activeChat]?.alias||'Chatt';cSh('sh-c-menu');oSh('sh-chat-timer');}
+function openGrpTimerSheet(){document.getElementById('ct-title').textContent=ME.groups[activeGroup]?.name||'Grupp';cSh('sh-grp-menu');oSh('sh-chat-timer');}
+function setChatTimer(btn){
+  const val=parseInt(btn.dataset.v);
+  if(activeChat&&ME.contacts[activeChat]){ME.contacts[activeChat].timer=val;save();}
+  if(activeGroup&&ME.groups[activeGroup]){ME.groups[activeGroup].timer=val;save();}
+  cSh('sh-chat-timer');
 }
-function toggleMuteContact(){
-  if(!activeChat||!ME.contacts[activeChat])return;
-  ME.contacts[activeChat].muted=!ME.contacts[activeChat].muted;
-  save();cSh('sh-c-menu');renderChats();
-}
-function togglePinContact(){
-  if(!activeChat||!ME.contacts[activeChat])return;
-  ME.contacts[activeChat].pinned=!ME.contacts[activeChat].pinned;
-  save();cSh('sh-c-menu');renderChats();
+function getChatTimer(){
+  if(activeChat&&ME.contacts[activeChat]!=null)return ME.contacts[activeChat].timer??ME.msgTimer;
+  if(activeGroup&&ME.groups[activeGroup]!=null)return ME.groups[activeGroup].timer??ME.msgTimer;
+  return ME.msgTimer;
 }
 
 // ─── Groups ────────────────────────────────────────────────────────
 async function deriveGid(name,pw){
-  const data=new TextEncoder().encode(name+'‖'+pw+'‖libra-gid-v6');
+  const data=new TextEncoder().encode(name+'‖'+pw+'‖libra-gid-v7');
   const h=await crypto.subtle.digest('SHA-256',data);
   return Array.from(new Uint8Array(h).slice(0,15)).map(x=>B62[x%B62.length]).join('');
 }
@@ -1164,54 +1182,98 @@ async function createGroup(){
   if(!pw)return alert('Ange ett lösenord');
   if(pw!==pw2)return alert('Lösenorden matchar inte');
   const gid=await deriveGid(name,pw);
-  if(ME.groups[gid])return alert('Du är redan med i den gruppen');
-  ME.groups[gid]={id:gid,name,password:pw,members:[ME.id],messages:[]};
+  if(ME.groups[gid])return alert('Du är redan med');
+  ME.groups[gid]={id:gid,name,password:pw,members:[ME.id],messages:[],timer:ME.msgTimer};
   save();['gc-name','gc-pw','gc-pw2'].forEach(id=>document.getElementById(id).value='');
   cSh('sh-create-g');wsSend({type:'GROUP_JOIN',groupId:gid});renderChats();openGroup(gid);
 }
 async function joinGrpByPw(){
   const name=document.getElementById('gj-name').value.trim();
   const pw=document.getElementById('gj-pw').value;
-  if(!name||!pw)return alert('Ange gruppnamn och lösenord');
+  if(!name||!pw)return alert('Ange namn och lösenord');
   const gid=await deriveGid(name,pw);
   if(ME.groups[gid])return alert('Du är redan med');
-  ME.groups[gid]={id:gid,name,password:pw,members:[ME.id],messages:[]};
+  ME.groups[gid]={id:gid,name,password:pw,members:[ME.id],messages:[],timer:ME.msgTimer};
   save();['gj-name','gj-pw'].forEach(id=>document.getElementById(id).value='');
   cSh('sh-join-g');wsSend({type:'GROUP_JOIN',groupId:gid});renderChats();openGroup(gid);
   await grpSend(gid,{type:'MEMBER_JOINED',memberId:ME.id,alias:ME.alias});
 }
-async function redeemGrpToken(){
-  const tok=document.getElementById('gj-tok').value.trim();
-  if(!tok)return alert('Ange en kod');
-  wsSend({type:'REDEEM_INVITE',token:tok,myId:ME.id,myAlias:ME.alias});
-}
-async function genGrpInvite(){
-  if(!activeGroup)return;
-  const g=ME.groups[activeGroup];
-  const tok=rndId(42);
-  wsSend({type:'CREATE_INVITE',token:tok,fromId:ME.id,fromAlias:ME.alias,groupId:g.id,groupName:g.name});
-  document.getElementById('gi-tv').textContent=tok;
-  document.getElementById('gi-res').style.display='block';
-}
-function leaveGroup(){
-  if(!activeGroup||!confirm('Lämna gruppen?'))return;
-  wsSend({type:'GROUP_LEAVE',groupId:activeGroup});
-  delete ME.groups[activeGroup];save();cSh('sh-grp-menu');goBack();renderChats();
+async function redeemGrpToken(){const tok=document.getElementById('gj-tok').value.trim();if(!tok)return alert('Ange en kod');wsSend({type:'REDEEM_INVITE',token:tok,myId:ME.id,myAlias:ME.alias});}
+async function genGrpInvite(){if(!activeGroup)return;const g=ME.groups[activeGroup];const tok=rndId(42);wsSend({type:'CREATE_INVITE',token:tok,fromId:ME.id,fromAlias:ME.alias,groupId:g.id,groupName:g.name});document.getElementById('gi-tv').textContent=tok;document.getElementById('gi-res').style.display='block';}
+function leaveGroup(){if(!activeGroup||!confirm('Lämna gruppen?'))return;wsSend({type:'GROUP_LEAVE',groupId:activeGroup});delete ME.groups[activeGroup];save();cSh('sh-grp-menu');goBack();renderChats();}
+
+// ─── Voice messages ─────────────────────────────────────────────────
+let mediaRecorder=null,recordedChunks=[],recordStart=0,recordMode=null;
+
+async function toggleRecord(mode){
+  if(mediaRecorder&&mediaRecorder.state==='recording'){
+    mediaRecorder.stop();return;
+  }
+  recordMode=mode;
+  recordedChunks=[];
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRecorder=new MediaRecorder(stream,{mimeType:MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/ogg'});
+    recordStart=Date.now();
+    mediaRecorder.ondataavailable=e=>{if(e.data.size>0)recordedChunks.push(e.data);};
+    mediaRecorder.onstop=async()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      const blob=new Blob(recordedChunks,{type:mediaRecorder.mimeType||'audio/webm'});
+      const duration=Date.now()-recordStart;
+      const btn=document.getElementById(mode==='dm'?'dm-mic':'grp-mic');
+      if(btn)btn.classList.remove('recording');
+      if(blob.size<1000)return; // too short
+      const reader=new FileReader();
+      reader.onload=async ev=>{
+        const m={id:rndId(16),msgType:'voice',data:ev.target.result,duration,ts:Date.now(),timer:getChatTimer(),reactions:{}};
+        if(mode==='dm'&&activeChat){
+          const m2={...m,own:true,from:ME.id,alias:ME.alias};
+          pushDM(activeChat,m2);appendMsg('c-msgs',m2,true);
+          await dmSend(activeChat,{type:'MESSAGE',...m,own:undefined,from:ME.id,alias:ME.alias});
+          if(m.timer>0)schedDel(m.id,m.timer,'dm',activeChat);
+        } else if(mode==='grp'&&activeGroup){
+          const g=ME.groups[activeGroup];
+          const m2={...m,from:ME.id,alias:ME.alias,own:true};
+          g.messages.push(m2);trim(g.messages);save();appendMsg('g-msgs',m2,true);
+          await grpSend(activeGroup,{type:'MESSAGE',...m,own:undefined,from:ME.id,alias:ME.alias});
+          if(m.timer>0)schedDel(m.id,m.timer,'grp',activeGroup);
+        }
+        renderChats();
+      };
+      reader.readAsDataURL(blob);
+    };
+    mediaRecorder.start(100);
+    const btn=document.getElementById(mode==='dm'?'dm-mic':'grp-mic');
+    if(btn)btn.classList.add('recording');
+  }catch(e){alert('Mikrofon ej tillgänglig: '+e.message);}
 }
 
-// ─── Reply state ───────────────────────────────────────────────────
-let replyTo = null; // { id, text, alias }
+// Play voice message
+let currentAudio=null;
+function playVoice(data,progressEl){
+  if(currentAudio){currentAudio.pause();currentAudio=null;}
+  currentAudio=new Audio(data);
+  currentAudio.ontimeupdate=()=>{
+    const pct=(currentAudio.currentTime/currentAudio.duration)*100;
+    if(progressEl)progressEl.style.width=pct+'%';
+  };
+  currentAudio.onended=()=>{if(progressEl)progressEl.style.width='0%';};
+  currentAudio.play().catch(()=>{});
+}
+
+// ─── Reply state ────────────────────────────────────────────────────
+let replyTo=null;
 function setReply(m){
   replyTo={id:m.id,text:m.text||'(media)',alias:m.alias||(m.own?ME.alias:'?')};
   const ctx=activeChat?'c':'g';
-  const bar=document.getElementById(ctx+'-reply-bar');
-  const txt=document.getElementById(ctx+'-reply-text');
-  if(bar) bar.style.display='block';
-  if(txt) txt.textContent=replyTo.alias+': '+replyTo.text.slice(0,60);
+  const bar=document.getElementById(ctx+'-rbar');
+  const txt=document.getElementById(ctx+'-rtext');
+  if(bar)bar.classList.add('on');
+  if(txt)txt.textContent=replyTo.alias+': '+replyTo.text.slice(0,60);
 }
 function clearReply(){
   replyTo=null;
-  ['c-reply-bar','g-reply-bar'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  ['c-rbar','g-rbar'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on');});
 }
 
 // ─── Messaging ─────────────────────────────────────────────────────
@@ -1225,9 +1287,9 @@ async function doSend(mode){
     const ta=document.getElementById('dm-ta');
     const text=ta.value.trim();if(!text||!activeChat)return;
     ta.value='';taResize(ta);
-    const m={id:rndId(16),msgType:'text',text,ts:Date.now(),timer:ME.msgTimer,own:true,from:ME.id,alias:ME.alias,reactions:{},replyTo:replyTo||null};
-    clearReply();
-    pushDM(activeChat,m);appendMsg('c-msgs',m,true);
+    const timer=getChatTimer();
+    const m={id:rndId(16),msgType:'text',text,ts:Date.now(),timer,own:true,from:ME.id,alias:ME.alias,reactions:{},replyTo:replyTo||null};
+    clearReply();pushDM(activeChat,m);appendMsg('c-msgs',m,true);
     await dmSend(activeChat,{type:'MESSAGE',...m,own:undefined});
     stopTypSig();
     if(m.timer>0)schedDel(m.id,m.timer,'dm',activeChat);
@@ -1235,10 +1297,10 @@ async function doSend(mode){
     const ta=document.getElementById('g-ta');
     const text=ta.value.trim();if(!text||!activeGroup)return;
     ta.value='';taResize(ta);
+    const timer=getChatTimer();
     const g=ME.groups[activeGroup];
-    const m={id:rndId(16),msgType:'text',text,ts:Date.now(),timer:ME.msgTimer,from:ME.id,alias:ME.alias,own:true,reactions:{},replyTo:replyTo||null};
-    clearReply();
-    g.messages.push(m);trim(g.messages);save();
+    const m={id:rndId(16),msgType:'text',text,ts:Date.now(),timer,from:ME.id,alias:ME.alias,own:true,reactions:{},replyTo:replyTo||null};
+    clearReply();g.messages.push(m);trim(g.messages);save();
     appendMsg('g-msgs',m,true);
     await grpSend(activeGroup,{type:'MESSAGE',...m,own:undefined});
     if(m.timer>0)schedDel(m.id,m.timer,'grp',activeGroup);
@@ -1253,8 +1315,8 @@ function recvMsg(fromId,p){
   const c=ME.contacts[fromId];if(!c)return;
   const m={...p,own:false,reactions:p.reactions||{}};
   c.messages.push(m);trim(c.messages);
-  if(activeChat===fromId)appendMsg('c-msgs',m,false);
-  else if(!c.muted){c.unread=(c.unread||0)+1;}
+  if(activeChat===fromId)appendMsg('c-msgs',m,false,true);
+  else if(!c.muted)c.unread=(c.unread||0)+1;
   save();renderChats();
   if(m.timer>0)schedDel(m.id,m.timer,'dm',fromId);
 }
@@ -1262,7 +1324,7 @@ function recvGrpMsg(gid,p){
   const g=ME.groups[gid];if(!g)return;
   const m={...p,own:false,reactions:p.reactions||{}};
   g.messages.push(m);trim(g.messages);save();
-  if(activeGroup===gid)appendMsg('g-msgs',m,false);
+  if(activeGroup===gid)appendMsg('g-msgs',m,false,true);
   else renderChats();
   if(m.timer>0)schedDel(m.id,m.timer,'grp',gid);
 }
@@ -1273,16 +1335,16 @@ function applyRxn(p,fromId,gid){
   if(!msgs)return;
   const msg=msgs.find(m=>m.id===p.msgId);if(!msg)return;
   msg.reactions=msg.reactions||{};
-  if(p.remove) delete msg.reactions[p.emoji];
-  else msg.reactions[p.emoji]=(msg.reactions[p.emoji]||0)+1;
+  msg.reactions[p.emoji]=(msg.reactions[p.emoji]||0)+1;
   save();
   const row=document.querySelector(`[data-mid="${p.msgId}"]`);
   if(row)updRxnDOM(row,msg.reactions);
+  // Floating emoji animation
+  if(activeChat===fromId||activeGroup===gid) floatEmoji(p.emoji);
 }
 async function sendRxn(msgId,emoji){
-  const payload={type:'REACTION',msgId,emoji,from:ME.id};
-  if(activeChat){await dmSend(activeChat,payload);applyRxn({msgId,emoji},ME.id,null);}
-  else if(activeGroup){await grpSend(activeGroup,{...payload});applyRxn({msgId,emoji},ME.id,activeGroup);}
+  if(activeChat){await dmSend(activeChat,{type:'REACTION',msgId,emoji,from:ME.id});applyRxn({msgId,emoji},ME.id,null);}
+  else if(activeGroup){await grpSend(activeGroup,{type:'REACTION',msgId,emoji,from:ME.id});applyRxn({msgId,emoji},ME.id,activeGroup);}
   closeCtx();
 }
 function updRxnDOM(row,rxns){
@@ -1291,92 +1353,93 @@ function updRxnDOM(row,rxns){
   el.innerHTML='';
   Object.entries(rxns).filter(([,n])=>n>0).forEach(([e,n])=>{
     const s=document.createElement('span');s.className='rxn';s.textContent=`${e} ${n}`;
-    s.onclick=()=>sendRxn(row.dataset.mid,e);
-    el.appendChild(s);
+    s.onclick=()=>sendRxn(row.dataset.mid,e);el.appendChild(s);
   });
+}
+function floatEmoji(emoji){
+  const el=document.createElement('div');el.className='float-emoji';el.textContent=emoji;
+  el.style.cssText=`left:${20+Math.random()*60}%;bottom:80px;`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),900);
 }
 
 // ─── Message DOM ────────────────────────────────────────────────────
-function appendMsg(wid,m,own){
+function appendMsg(wid,m,own,animate){
   const wrap=document.getElementById(wid);if(!wrap)return;
-  // Date separator
   const ds=fmtDate(m.ts);
   if(ds!==lastDate){
     lastDate=ds;
-    const sep=document.createElement('div');
-    sep.className='mr date-sep';
+    const sep=document.createElement('div');sep.className='mr ds';
     sep.innerHTML=`<div class="bub">${esc(ds)}</div>`;
     wrap.appendChild(sep);
   }
   const row=document.createElement('div');
-  row.className='mr '+(own?'own':m.msgType==='system'?'sys':'other');
-  row.dataset.mid=m.id;
-  row.dataset.text=m.text||'';
+  row.className='mr '+(own?'own':m.msgType==='system'?'sys':'other')+(animate?' new':'');
+  row.dataset.mid=m.id;row.dataset.text=m.text||'';
 
-  // Sender label in group
-  if(!own&&wid==='g-msgs'&&m.alias){
-    const sl=document.createElement('div');sl.className='sndr-lbl';sl.textContent=m.alias;row.appendChild(sl);
-  }
+  if(!own&&wid==='g-msgs'&&m.alias){const sl=document.createElement('div');sl.className='sndr';sl.textContent=m.alias;row.appendChild(sl);}
+  if(m.replyTo){const q=document.createElement('div');q.className='q-msg';q.textContent=`↩ ${m.replyTo.alias}: ${String(m.replyTo.text||'').slice(0,60)}`;row.appendChild(q);}
 
-  // Reply quote display
-  if(m.replyTo){
-    const q=document.createElement('div');
-    q.className='quoted-msg';
-    q.textContent=`↩ ${m.replyTo.alias}: ${String(m.replyTo.text||'').slice(0,60)}`;
-    row.appendChild(q);
-  }
-
-  const bub=document.createElement('div');
-  bub.className='bub';
+  const bub=document.createElement('div');bub.className='bub';
 
   if(m.msgType==='image'){
     bub.classList.add('img-b');
     const img=document.createElement('img');
     img.src=m.data;img.loading='lazy';img.onclick=()=>openLb(m.data);
-    bub.appendChild(img);
+    img.style.maxWidth='240px';bub.appendChild(img);
+  } else if(m.msgType==='voice'){
+    bub.classList.add('voice-b');
+    const playBtn=document.createElement('div');playBtn.className='v-play';playBtn.textContent='▶';
+    const barWrap=document.createElement('div');barWrap.className='v-bar';
+    const barFill=document.createElement('div');barFill.className='v-bar-fill';
+    barWrap.appendChild(barFill);
+    const dur=document.createElement('div');dur.className='v-dur';dur.textContent=fmtDuration(m.duration||0);
+    playBtn.onclick=()=>{
+      if(currentAudio&&!currentAudio.paused){currentAudio.pause();playBtn.textContent='▶';return;}
+      playVoice(m.data,barFill);playBtn.textContent='⏸';
+    };
+    bub.appendChild(playBtn);bub.appendChild(barWrap);bub.appendChild(dur);
   } else if(m.msgType==='file'){
     bub.classList.add('file-b');
-    bub.innerHTML=`<div class="f-ico">📄</div><div class="f-det"><div class="f-nm">${esc(m.fileName||'Fil')}</div><div class="f-sz">${fmtBytes(m.fileSize)}</div></div>`;
+    bub.innerHTML=`<div class="f-ico">📄</div><div style="flex:1;min-width:0"><div class="f-nm">${esc(m.fileName||'Fil')}</div><div class="f-sz">${fmtBytes(m.fileSize)}</div></div>`;
     bub.onclick=()=>dlFile(m.data,m.fileName);
   } else if(m.msgType==='system'){
     bub.textContent=m.text||'';
   } else {
-    // Linkify URLs
     bub.innerHTML=linkify(esc(m.text||''));
   }
 
-  // Long press
+  // Long press / right click
   let lpt;
-  const startLP=()=>{lpt=setTimeout(()=>openCtx(m,row),580);};
+  const startLP=()=>{lpt=setTimeout(()=>openCtx(m,row),560);};
   const endLP=()=>clearTimeout(lpt);
   bub.addEventListener('touchstart',startLP,{passive:true});
   bub.addEventListener('touchend',endLP);
   bub.addEventListener('touchmove',endLP,{passive:true});
   bub.addEventListener('contextmenu',e=>{e.preventDefault();openCtx(m,row);});
 
-  row.appendChild(bub);
+  // Swipe right on bubble = reply
+  let bsx=0;
+  bub.addEventListener('touchstart',e=>{bsx=e.touches[0].clientX;},{passive:true});
+  bub.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-bsx;
+    if(dx>55&&dx<150)setReply({...m,own});
+  });
 
-  // Meta
+  row.appendChild(bub);
   const meta=document.createElement('div');
   meta.className='msg-meta '+(own?'r':'l');
-  meta.innerHTML=`<span class="m-time">${fmtTime(m.ts)}</span>`;
-  if(own) meta.innerHTML+=`<span class="m-tick">✓✓</span>`;
-  if(m.timer>0){
-    const pill=document.createElement('span');
-    pill.className='tpill';pill.id='tp-'+m.id;pill.textContent=fmtTimer(m.timer);
-    meta.appendChild(pill);
-  }
+  meta.innerHTML=`<span class="m-t">${fmtTime(m.ts)}</span>`;
+  if(own)meta.innerHTML+=`<span class="m-tick">✓✓</span>`;
+  if(m.timer>0){const p=document.createElement('span');p.className='tpill';p.id='tp-'+m.id;p.textContent=fmtTimer(m.timer);meta.appendChild(p);}
   row.appendChild(meta);
-
-  // Reactions
-  if(m.reactions&&Object.keys(m.reactions).length){updRxnDOM(row,m.reactions);}
-
+  if(m.reactions&&Object.keys(m.reactions).length)updRxnDOM(row,m.reactions);
   wrap.appendChild(row);
   wrap.scrollTop=wrap.scrollHeight;
 }
 
 function linkify(s){
-  return s.replace(/(https?:\/\/[^\s<>"']+)/g,'<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--acc);text-decoration:underline">$1</a>');
+  return s.replace(/(https?:\/\/[^\s<>"']+)/g,'<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#7eb8ff;text-decoration:underline;text-underline-offset:2px">$1</a>');
 }
 
 function renderChatMsgs(){const w=document.getElementById('c-msgs');if(!w)return;w.innerHTML='';lastDate='';const c=ME.contacts[activeChat];if(!c)return;c.messages.forEach(m=>appendMsg('c-msgs',m,m.own));}
@@ -1406,16 +1469,16 @@ function ctxReact(){
   const m=_cM;closeCtx();
   const pick=document.createElement('div');
   pick.className='emoji-pick';
-  pick.style.cssText='bottom:90px;left:50%;transform:translateX(-50%)';
+  pick.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:401;background:var(--s2);border:1px solid var(--b3);border-radius:16px;padding:8px;display:flex;gap:4px;flex-wrap:wrap;max-width:240px;box-shadow:0 8px 32px rgba(0,0,0,.6)';
   EMOJIS.forEach(e=>{
     const btn=document.createElement('button');
-    btn.className='ep-btn';btn.textContent=e;
-    btn.onclick=()=>{document.body.removeChild(pick);sendRxn(m.id,e);};
+    btn.style.cssText='background:none;border:none;font-size:24px;cursor:pointer;padding:4px;border-radius:8px';
+    btn.textContent=e;btn.onclick=()=>{document.body.removeChild(pick);sendRxn(m.id,e);};
     pick.appendChild(btn);
   });
   const close=document.createElement('button');
-  close.className='ep-btn';close.textContent='✕';
-  close.onclick=()=>document.body.removeChild(pick);
+  close.style.cssText='background:none;border:none;font-size:16px;cursor:pointer;padding:4px;color:var(--t3)';
+  close.textContent='✕';close.onclick=()=>document.body.removeChild(pick);
   pick.appendChild(close);
   document.body.appendChild(pick);
   setTimeout(()=>{if(pick.parentNode)pick.parentNode.removeChild(pick);},8000);
@@ -1454,24 +1517,23 @@ function handleFile(e,mode){
   const reader=new FileReader();
   reader.onload=async ev=>{
     const isImg=file.type.startsWith('image/');
-    const m={id:rndId(16),msgType:isImg?'image':'file',data:ev.target.result,
-      fileName:file.name,fileSize:file.size,ts:Date.now(),timer:ME.msgTimer,reactions:{},replyTo:replyTo||null};
+    const timer=getChatTimer();
+    const m={id:rndId(16),msgType:isImg?'image':'file',data:ev.target.result,fileName:file.name,fileSize:file.size,ts:Date.now(),timer,reactions:{},replyTo:replyTo||null};
     clearReply();
     if(mode==='dm'&&activeChat){
-      const m2={...m,own:true,from:ME.id,alias:ME.alias};pushDM(activeChat,m2);appendMsg('c-msgs',m2,true);
+      const m2={...m,own:true,from:ME.id,alias:ME.alias};pushDM(activeChat,m2);appendMsg('c-msgs',m2,true,true);
       await dmSend(activeChat,{type:'MESSAGE',...m,own:undefined,from:ME.id,alias:ME.alias});
       if(m.timer>0)schedDel(m.id,m.timer,'dm',activeChat);
     } else if(mode==='grp'&&activeGroup){
       const g=ME.groups[activeGroup];
       const m2={...m,from:ME.id,alias:ME.alias,own:true};
-      g.messages.push(m2);trim(g.messages);save();appendMsg('g-msgs',m2,true);
+      g.messages.push(m2);trim(g.messages);save();appendMsg('g-msgs',m2,true,true);
       await grpSend(activeGroup,{type:'MESSAGE',...m,own:undefined,from:ME.id,alias:ME.alias});
       if(m.timer>0)schedDel(m.id,m.timer,'grp',activeGroup);
     }
     renderChats();
   };
-  reader.readAsDataURL(file);
-  e.target.value='';
+  reader.readAsDataURL(file);e.target.value='';
 }
 
 // ─── Typing ────────────────────────────────────────────────────────
@@ -1482,25 +1544,22 @@ function showTyp(ctx,alias){
   clearTimeout(pTypT[ctx]);pTypT[ctx]=setTimeout(()=>hideTyp(ctx),3500);
 }
 function hideTyp(ctx){const b=document.getElementById(ctx==='c'?'c-typing':'g-typing');if(b)b.classList.remove('on');}
-
 async function sigTyp(mode){
-  if(mode==='dm'&&activeChat) await dmSend(activeChat,{type:'TYPING',alias:ME.alias}).catch(()=>{});
-  else if(mode==='grp'&&activeGroup) await grpSend(activeGroup,{type:'TYPING',alias:ME.alias,from:ME.id}).catch(()=>{});
+  if(mode==='dm'&&activeChat)await dmSend(activeChat,{type:'TYPING',alias:ME.alias}).catch(()=>{});
+  else if(mode==='grp'&&activeGroup)await grpSend(activeGroup,{type:'TYPING',alias:ME.alias,from:ME.id}).catch(()=>{});
   clearTimeout(myTypT);myTypT=setTimeout(stopTypSig,2500);
 }
 async function stopTypSig(){
-  if(activeChat) dmSend(activeChat,{type:'STOP_TYPING'}).catch(()=>{});
-  if(activeGroup) grpSend(activeGroup,{type:'STOP_TYPING',from:ME.id}).catch(()=>{});
+  if(activeChat)dmSend(activeChat,{type:'STOP_TYPING'}).catch(()=>{});
+  if(activeGroup)grpSend(activeGroup,{type:'STOP_TYPING',from:ME.id}).catch(()=>{});
 }
-
 function taKey(e,m){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSend(m);}}
 function taIn(e,m){taResize(e.target);sigTyp(m);}
 function taResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
 
 // ─── Navigation ────────────────────────────────────────────────────
 let _tab='chats';
-const TABS={chats:'s-chats',contacts:'s-contacts',profile:'s-profile'};
-
+const TABS={chats:'s-chats',contacts:'s-contacts',notes:'s-notes',profile:'s-profile'};
 function goTab(tab){
   _tab=tab;
   document.querySelectorAll('.nt').forEach(t=>t.classList.remove('act'));
@@ -1508,9 +1567,38 @@ function goTab(tab){
   showSc(TABS[tab]);
 }
 function showSc(id){document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));document.getElementById(id)?.classList.add('on');}
-function goBack(){
-  activeChat=null;activeGroup=null;lastDate='';clearReply();
-  showSc(TABS[_tab]);renderChats();renderContacts();
+
+function slideIntoChat(scId){
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
+  const sc=document.getElementById(scId);if(!sc)return;
+  sc.classList.add('on','slide-in');
+  sc.addEventListener('animationend',()=>sc.classList.remove('slide-in'),{once:true});
+}
+
+function slideBack(){
+  const sc=document.querySelector('.sc.on:not(#bnav)');
+  if(!sc)return;
+  sc.classList.add('slide-out');
+  sc.addEventListener('animationend',()=>{
+    sc.classList.remove('on','slide-out');
+    activeChat=null;activeGroup=null;lastDate='';clearReply();
+    showSc(TABS[_tab]);renderChats();renderContacts();
+  },{once:true});
+}
+
+function goBack(){activeChat=null;activeGroup=null;lastDate='';clearReply();showSc(TABS[_tab]);renderChats();renderContacts();}
+
+// Swipe right to go back from chat views
+function initSwipeBack(scId){
+  const sc=document.getElementById(scId);if(!sc)return;
+  let sx=0,sy=0,swiping=false;
+  sc.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;swiping=sx<30;},{passive:true});
+  sc.addEventListener('touchend',e=>{
+    if(!swiping)return;swiping=false;
+    const dx=e.changedTouches[0].clientX-sx;
+    const dy=Math.abs(e.changedTouches[0].clientY-sy);
+    if(dx>60&&dy<50)slideBack();
+  });
 }
 
 function openChat(cid){
@@ -1518,16 +1606,17 @@ function openChat(cid){
   activeChat=cid;activeGroup=null;lastDate='';clearReply();
   c.unread=0;save();renderChats();
   const cls=avCls(cid);
-  const av=document.getElementById('c-av');
-  av.className=`av sm ${cls}`;av.textContent=c.alias.charAt(0).toUpperCase();
+  const av=document.getElementById('c-av');av.className=`av sm ${cls}`;av.textContent=c.alias.charAt(0).toUpperCase();
   document.getElementById('c-name').textContent=c.alias;
   document.getElementById('c-sub').textContent='E2E krypterat'+(c.muted?' · Tystad':'')+(c.pinned?' · Fäst':'');
-  updateKeyBanner(cid);
+  // Apply chat bg
+  const msgs=document.getElementById('c-msgs');
+  if(msgs){msgs.className='msgs';if(ME.chatBg)msgs.classList.add(ME.chatBg);}
+  updKeyBanner(cid);
   renderChatMsgs();
-  showSc('s-chat');
-  setTimeout(()=>{const w=document.getElementById('c-msgs');if(w)w.scrollTop=w.scrollHeight;},60);
-  // Initiate ECDH
-  if(!SESS[cid]) ecdhInit(cid).catch(()=>{});
+  slideIntoChat('s-chat');
+  setTimeout(()=>{const w=document.getElementById('c-msgs');if(w)w.scrollTop=w.scrollHeight;},80);
+  if(!SESS[cid])ecdhInit(cid).catch(()=>{});
 }
 
 function openGroup(gid){
@@ -1535,88 +1624,85 @@ function openGroup(gid){
   activeGroup=gid;activeChat=null;lastDate='';clearReply();
   document.getElementById('g-name').textContent=g.name;
   updGrpHdr();
+  const msgs=document.getElementById('g-msgs');
+  if(msgs){msgs.className='msgs';if(ME.chatBg)msgs.classList.add(ME.chatBg);}
   renderGrpMsgs();
-  showSc('s-grp');
-  setTimeout(()=>{const w=document.getElementById('g-msgs');if(w)w.scrollTop=w.scrollHeight;},60);
+  slideIntoChat('s-grp');
+  setTimeout(()=>{const w=document.getElementById('g-msgs');if(w)w.scrollTop=w.scrollHeight;},80);
 }
 function updGrpHdr(){
   const g=ME.groups[activeGroup];if(!g)return;
   document.getElementById('g-sub').textContent=`${g.members.length} medl. · E2E krypterat`;
   document.getElementById('gm-name').textContent=g.name;
-  document.getElementById('gm-info').textContent=`${g.members.length} medl. · Nyckel deriverad från lösenord`;
+  document.getElementById('gm-info').textContent=`${g.members.length} medl. · Nyckel från lösenord`;
 }
 
-// ─── Contact info sheet ─────────────────────────────────────────────
-function openContactInfo(){
-  if(!activeChat)return;
-  const c=ME.contacts[activeChat];if(!c)return;
+// Contact info sheet
+function openCInfo(){
+  if(!activeChat)return;const c=ME.contacts[activeChat];if(!c)return;
   const cls=avCls(activeChat);
-  const wrap=document.getElementById('ci-av-wrap');
-  if(wrap) wrap.innerHTML=`<div class="av lg ${cls}">${c.alias.charAt(0).toUpperCase()}</div>`;
-  document.getElementById('ci-cname').textContent=c.alias;
-  document.getElementById('ci-cid').textContent=activeChat;
+  const wrap=document.getElementById('cinfo-av-wrap');
+  if(wrap)wrap.innerHTML=`<div class="av lg ${cls}">${c.alias.charAt(0).toUpperCase()}</div>`;
+  document.getElementById('cinfo-name').textContent=c.alias;
+  document.getElementById('cinfo-id').textContent=activeChat;
   const s=SESS[activeChat];
-  const si=document.getElementById('ci-ecdh-status');
-  if(si) si.textContent=s?.ok?'🔐 ECDH P-256 Forward Secrecy aktiv\nSessionsnyckeln lever bara i minnet — läcker aldrig till server':'⏳ ECDH-session upprättas... Fallback-kryptering aktiv';
-  oSh('sh-contact-info');
+  const ki=document.getElementById('cinfo-key');
+  if(ki)ki.textContent=s?.ok?'🔐 ECDH P-256 Forward Secrecy aktiv\nSessionsnyckeln finns bara i minnet':'⏳ Upprättar ECDH-session... (fallback aktiv)';
+  oSh('sh-cinfo');
 }
 
 // ─── Render lists ───────────────────────────────────────────────────
 function renderChats(){
   const wrap=document.getElementById('chats-list');if(!wrap)return;
   const q=(document.getElementById('chats-q')?.value||'').toLowerCase();
-  const contacts=Object.values(ME.contacts).map(c=>({...c,_t:'dm',_n:c.alias,_last:c.messages[c.messages.length-1],_u:c.muted?0:(c.unread||0),_pin:c.pinned||false}));
-  const groups=Object.values(ME.groups).map(g=>({...g,_t:'grp',_n:g.name,_last:g.messages[g.messages.length-1],_u:0,_pin:false}));
-  const all=[...contacts,...groups]
-    .filter(x=>!q||x._n.toLowerCase().includes(q))
-    .sort((a,b)=>(b._pin?1:0)-(a._pin?1:0)||(b._last?.ts||0)-(a._last?.ts||0));
+  const items=[
+    ...Object.values(ME.contacts).map(c=>({...c,_t:'dm',_n:c.alias,_last:c.messages[c.messages.length-1],_u:c.muted?0:(c.unread||0),_pin:c.pinned||false})),
+    ...Object.values(ME.groups).map(g=>({...g,_t:'grp',_n:g.name,_last:g.messages[g.messages.length-1],_u:0,_pin:false})),
+  ].filter(x=>!q||x._n.toLowerCase().includes(q))
+   .sort((a,b)=>(b._pin?1:0)-(a._pin?1:0)||(b._last?.ts||0)-(a._last?.ts||0));
 
-  if(!all.length){
-    wrap.innerHTML=`<div class="empty"><div class="empty-ico">💬</div><div>Inga chattar än</div><div style="font-size:12px;margin-top:5px">Tryck + för att starta</div></div>`;
+  if(!items.length){
+    wrap.innerHTML=`<div class="empty"><div class="empty-ico">💬</div><div>Inga chattar än</div><div style="font-size:12px;margin-top:6px">Tryck + för att starta</div></div>`;
   } else {
     wrap.innerHTML='';
-    all.forEach(x=>{
+    items.forEach(x=>{
       const isGrp=x._t==='grp';
       const cls=isGrp?'avG':avCls(x.id);
       const ico=isGrp?'👥':x._n.charAt(0).toUpperCase();
-      const prev=x._last?((x._last.own||x._last.from===ME.id)?'Du: ':'')+(x._last.text||(x._last.msgType==='image'?'📷 Bild':'📎 Fil')):'';
-      const div=document.createElement('div');
-      div.className='ci';
+      const prev=x._last?((x._last.own||x._last.from===ME.id)?'Du: ':'')+
+        (x._last.msgType==='voice'?'🎤 Röstmeddelande':x._last.text||(x._last.msgType==='image'?'📷 Bild':'📎 Fil')):'';
+      const div=document.createElement('div');div.className='ci';
       div.innerHTML=`
         <div class="av ${cls}">${ico}</div>
         <div class="ci-info">
-          <div class="ci-name">${esc(x._n)}${x._pin?'<span style="font-size:12px;margin-left:5px;color:var(--ylw)">📌</span>':''}</div>
+          <div class="ci-name">${esc(x._n)}${x._pin?'<span style="font-size:11px;margin-left:5px;color:var(--ylw)">📌</span>':''}</div>
           <div class="ci-prev">${prev?esc(prev):'<span style="color:var(--t4)">Ny chatt</span>'}</div>
         </div>
-        <div class="ci-right">
+        <div class="ci-r">
           ${x._last?`<div class="ci-time">${fmtTime(x._last.ts)}</div>`:''}
           ${x._u>0?`<div class="unread">${x._u}</div>`:''}
-          ${x.muted?'<div class="muted-badge">🔕</div>':''}
+          ${x.muted?'<span style="font-size:15px;color:var(--t3)">🔕</span>':''}
         </div>
         <div class="ci-del">🗑</div>`;
       div.querySelector('.ci-del').onclick=e=>{e.stopPropagation();if(confirm('Radera chatt?')){if(isGrp)delete ME.groups[x.id];else delete ME.contacts[x.id];save();renderChats();renderContacts();}};
       div.onclick=e=>{if(e.target.classList.contains('ci-del'))return;isGrp?openGroup(x.id):openChat(x.id);};
-      // Swipe to reveal delete
+      // Swipe to delete
       let sx=0;
       div.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});
       div.addEventListener('touchend',e=>{const dx=sx-e.changedTouches[0].clientX;if(dx>55)div.classList.add('sw');else if(dx<-20)div.classList.remove('sw');});
       wrap.appendChild(div);
     });
   }
-  // Badge
   const tot=Object.values(ME.contacts).reduce((s,c)=>s+(c.muted?0:(c.unread||0)),0);
-  const badge=document.getElementById('nb-chats');
-  if(badge){badge.textContent=tot;badge.classList.toggle('on',tot>0);}
-  // sh-new contacts list
-  const snl=document.getElementById('sh-new-list');
-  if(snl){
+  const badge=document.getElementById('nb-chats');if(badge){badge.textContent=tot;badge.classList.toggle('on',tot>0);}
+  // sh-new list
+  const snl=document.getElementById('sh-new-list');if(snl){
     snl.innerHTML='';
     Object.values(ME.contacts).slice(0,8).forEach(c=>{
       const b=document.createElement('button');b.className='ghost';
       b.style.cssText='display:flex;align-items:center;gap:10px';
       b.innerHTML=`<div class="av sm ${avCls(c.id)}">${c.alias.charAt(0).toUpperCase()}</div>${esc(c.alias)}`;
-      b.onclick=()=>{cSh('sh-new');openChat(c.id);};
-      snl.appendChild(b);
+      b.onclick=()=>{cSh('sh-new');openChat(c.id);};snl.appendChild(b);
     });
   }
 }
@@ -1625,223 +1711,163 @@ function renderContacts(){
   const wrap=document.getElementById('contacts-list');if(!wrap)return;
   const q=(document.getElementById('contacts-q')?.value||'').toLowerCase();
   const list=Object.values(ME.contacts).filter(c=>!q||c.alias.toLowerCase().includes(q)||c.id.includes(q));
-  if(!list.length){
-    wrap.innerHTML=`<div class="empty"><div class="empty-ico">👥</div><div>Inga kontakter</div><div style="font-size:12px;margin-top:5px">Tryck + för att lägga till</div></div>`;return;
-  }
+  if(!list.length){wrap.innerHTML=`<div class="empty"><div class="empty-ico">👥</div><div>Inga kontakter</div><div style="font-size:12px;margin-top:6px">Tryck + för att lägga till</div></div>`;return;}
   wrap.innerHTML='';
   list.forEach(c=>{
     const div=document.createElement('div');div.className='ci';div.onclick=()=>openChat(c.id);
     const cls=avCls(c.id);
-    div.innerHTML=`
-      <div class="av ${cls}">${c.alias.charAt(0).toUpperCase()}</div>
-      <div class="ci-info">
-        <div class="ci-name">${esc(c.alias)}</div>
-        <div class="ci-prev" style="font-family:monospace;font-size:11px">${c.id.slice(0,22)}...</div>
-      </div>
-      <div class="ci-right" style="color:var(--t3);font-size:22px">›</div>`;
+    div.innerHTML=`<div class="av ${cls}">${c.alias.charAt(0).toUpperCase()}</div><div class="ci-info"><div class="ci-name">${esc(c.alias)}</div><div class="ci-prev" style="font-family:monospace;font-size:11px">${c.id.slice(0,22)}...</div></div><div class="ci-r" style="color:var(--t3);font-size:22px">›</div>`;
     wrap.appendChild(div);
   });
 }
 
-// ─── Chat actions ───────────────────────────────────────────────────
+// ─── Chat menu actions ──────────────────────────────────────────────
 function openChatMenu(){
-  if(!activeChat)return;
-  const c=ME.contacts[activeChat];if(!c)return;
+  if(!activeChat)return;const c=ME.contacts[activeChat];if(!c)return;
   document.getElementById('cm-name').textContent=c.alias;
   document.getElementById('cm-id').textContent=activeChat;
-  const s=SESS[activeChat];
-  const ki=document.getElementById('cm-key-info');
-  if(ki){
-    ki.style.background=s?.ok?'rgba(45,211,111,.08)':'rgba(255,214,10,.08)';
-    ki.style.borderColor=s?.ok?'rgba(45,211,111,.22)':'rgba(255,214,10,.22)';
-    ki.style.color=s?.ok?'var(--grn)':'var(--ylw)';
-    ki.textContent=s?.ok?'🔐 ECDH P-256 Forward Secrecy aktiv\nSessionsnyckeln finns bara i minnet':'⏳ Upprättar ECDH-session... (fallback aktiv)';
-  }
+  const s=SESS[activeChat];const ki=document.getElementById('cm-key-info');
+  if(ki){ki.style.cssText=`background:${s?.ok?'rgba(48,208,104,.08)':'rgba(255,201,0,.08)'};border-color:${s?.ok?'rgba(48,208,104,.22)':'rgba(255,201,0,.22)'};color:${s?.ok?'var(--grn)':'var(--ylw)'}`;ki.textContent=s?.ok?'🔐 ECDH P-256 Forward Secrecy aktiv':'⏳ Upprättar ECDH-session...';}
   oSh('sh-c-menu');
 }
-function genChatInvite(){cSh('sh-c-menu');oSh('sh-add-c');setTimeout(genContactInvite,350);}
+function genChatInvite(){cSh('sh-c-menu');oSh('sh-add-c');setTimeout(genCInvite,350);}
 function clearChat(){if(!activeChat||!confirm('Rensa historik?'))return;ME.contacts[activeChat].messages=[];save();document.getElementById('c-msgs').innerHTML='';lastDate='';cSh('sh-c-menu');renderChats();}
 function clearGrpChat(){if(!activeGroup||!confirm('Rensa grupphistorik?'))return;ME.groups[activeGroup].messages=[];save();document.getElementById('g-msgs').innerHTML='';lastDate='';cSh('sh-grp-menu');renderChats();}
 function deleteContact(){if(!activeChat||!confirm('Ta bort kontakt?'))return;delete ME.contacts[activeChat];save();cSh('sh-c-menu');goBack();renderChats();renderContacts();}
 
-// ─── Settings & profile ─────────────────────────────────────────────
+// ─── Settings ──────────────────────────────────────────────────────
 async function confirmRename(){
-  const v=document.getElementById('rename-i').value.trim();
-  if(!v)return alert('Ange ett alias');
+  const v=document.getElementById('rename-i').value.trim();if(!v)return alert('Ange ett alias');
   ME.alias=v;save();updProfUI();cSh('sh-rename');
-  for(const cid of Object.keys(ME.contacts)) dmSend(cid,{type:'RENAME',alias:v}).catch(()=>{});
+  for(const cid of Object.keys(ME.contacts))dmSend(cid,{type:'RENAME',alias:v}).catch(()=>{});
 }
-function setTimer(btn){
-  ME.msgTimer=parseInt(btn.dataset.v);save();
-  document.getElementById('prof-timer').textContent=fmtTimer(ME.msgTimer)||'Av';
-  cSh('sh-timer');
+function setGlobalTimer(btn){ME.msgTimer=parseInt(btn.dataset.v);save();document.getElementById('prof-timer').textContent=fmtTimer(ME.msgTimer)||'Av';cSh('sh-timer');}
+function setTheme(theme,label){
+  ME.theme=theme;save();
+  document.body.className=theme==='dark'?'':theme==='navy'?'theme-navy':'theme-light';
+  document.getElementById('prof-theme-lbl').textContent=label;
+  cSh('sh-theme');
 }
-function setAccent(color,name){
-  ME.accent=color;save();
-  document.documentElement.style.setProperty('--acc',color);
-  document.getElementById('prof-theme').textContent=name;
-}
-function setBg(color,name){
-  ME.bgColor=color;save();
-  document.documentElement.style.setProperty('--bg',color);
-  document.body.style.background=color;
-}
+function setChatBg(bg){ME.chatBg=bg;save();cSh('sh-chat-bg');}
 function updProfUI(){
   const a=ME.alias.charAt(0).toUpperCase();
-  const m={
-    'prof-av-l':a,'prof-name':ME.alias,'prof-id':ME.id,
-    'prof-id-sh':ME.id.slice(0,24)+'...','prof-timer':fmtTimer(ME.msgTimer)||'Av'
-  };
+  const m={'prof-av-l':a,'prof-name':ME.alias,'prof-id':ME.id,'prof-id-sh':ME.id.slice(0,24)+'...','prof-timer':fmtTimer(ME.msgTimer)||'Av'};
   Object.entries(m).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=v;});
 }
-function clearAllChats(){
-  if(!confirm('Rensa ALLA chattar?'))return;
-  Object.values(ME.contacts).forEach(c=>c.messages=[]);
-  Object.values(ME.groups).forEach(g=>g.messages=[]);
-  save();renderChats();
+function clearAllChats(){if(!confirm('Rensa ALLA chattar?'))return;Object.values(ME.contacts).forEach(c=>c.messages=[]);Object.values(ME.groups).forEach(g=>g.messages=[]);save();renderChats();}
+function wipeAll(){
+  if(!confirm('⚠️ RADERA ALLT?\n\nDetta raderar ditt konto, alla kontakter, alla meddelanden och alla anteckningar. Permanent.'))return;
+  if(!confirm('Bekräfta nödradering — kan inte ångras.'))return;
+  localStorage.removeItem('_lb9');location.reload();
 }
-function deleteAccount(){
-  if(!confirm('Radera konto, kontakter och all data?'))return;
-  if(!confirm('Bekräfta — detta kan inte ångras.'))return;
-  localStorage.removeItem('_lb8');location.reload();
+
+// ─── Notes ─────────────────────────────────────────────────────────
+let currentNoteId=null;
+function goNotes(){_tab='notes';goTab('notes');}
+function renderNotes(){
+  const wrap=document.getElementById('notes-list');if(!wrap)return;
+  if(!ME.notes||!ME.notes.length){wrap.innerHTML=`<div class="empty"><div class="empty-ico">📝</div><div>Inga anteckningar</div><div style="font-size:12px;margin-top:6px">Tryck + för att skapa</div></div>`;return;}
+  wrap.innerHTML='';
+  [...ME.notes].sort((a,b)=>b.ts-a.ts).forEach(n=>{
+    const div=document.createElement('div');div.className='note-item';div.onclick=()=>openNoteEdit(n.id);
+    div.innerHTML=`<div class="note-title">${esc(n.title||'Utan titel')}</div><div class="note-prev">${esc((n.body||'').slice(0,80))}</div><div class="note-date">${fmtDate(n.ts)} ${fmtTime(n.ts)}</div>`;
+    wrap.appendChild(div);
+  });
+}
+function newNote(){
+  const id=rndId(16);
+  ME.notes=ME.notes||[];
+  ME.notes.push({id,title:'',body:'',ts:Date.now()});
+  save();openNoteEdit(id);
+}
+function openNoteEdit(id){
+  currentNoteId=id;const n=ME.notes.find(x=>x.id===id);if(!n)return;
+  document.getElementById('note-title-inp').value=n.title||'';
+  document.getElementById('note-body-inp').value=n.body||'';
+  slideIntoChat('s-note-edit');
+}
+function noteChanged(){
+  if(!currentNoteId)return;const n=ME.notes.find(x=>x.id===currentNoteId);if(!n)return;
+  n.title=document.getElementById('note-title-inp').value;
+  n.body=document.getElementById('note-body-inp').value;
+  n.ts=Date.now();save();
+}
+function closeNoteEdit(){currentNoteId=null;goBack();renderNotes();}
+function deleteNote(){
+  if(!currentNoteId||!confirm('Radera anteckning?'))return;
+  ME.notes=(ME.notes||[]).filter(n=>n.id!==currentNoteId);
+  save();closeNoteEdit();
 }
 
 // ─── Token countdown ────────────────────────────────────────────────
-function tokCountdown(elId,secs){
-  let r=secs;
-  const iv=setInterval(()=>{
-    r--;
-    const el=document.getElementById(elId);
-    if(el)el.textContent=`Giltig ${fmtTimer(r)} · engångsanvändning`;
-    if(r<=0){clearInterval(iv);if(el)el.textContent='Koden har löpt ut';}
-  },1000);
-}
+function tokCountdown(elId,secs){let r=secs;const iv=setInterval(()=>{r--;const el=document.getElementById(elId);if(el)el.textContent=`Giltig ${fmtTimer(r)} · engångsanvändning`;if(r<=0){clearInterval(iv);if(el)el.textContent='Koden har löpt ut';}},1000);}
 
-// ─── Voice calls (WebRTC + TURN) ────────────────────────────────────
+// ─── Voice calls ────────────────────────────────────────────────────
 let lStream=null,pConn=null,callCid=null,callTiv=null,callSecs=0,isMuted=false,incCall=null;
-
 function mkPC(){
-  const c=new RTCPeerConnection(ICE_CFG);
+  const c=new RTCPeerConnection(ICE);
   c.ontrack=e=>{const a=document.getElementById('call-audio');if(a&&e.streams[0])a.srcObject=e.streams[0];};
-  c.onicecandidate=async e=>{
-    if(e.candidate&&callCid){
-      const key=await sessKey(callCid);
-      const en=await encO({type:'WEBRTC_ICE',candidate:e.candidate},key);
-      wsSend({type:'WEBRTC_ICE',to:callCid,from:ME.id,enc:en});
-    }
-  };
+  c.onicecandidate=async e=>{if(e.candidate&&callCid){const key=await sessKey(callCid);const en=await encO({type:'WEBRTC_ICE',candidate:e.candidate},key);wsSend({type:'WEBRTC_ICE',to:callCid,from:ME.id,enc:en});}};
   c.onconnectionstatechange=()=>{
     const st=c.connectionState;
-    const qs=document.getElementById('cl-qual');if(qs)qs.textContent=st==='connected'?'●  Stabil anslutning':st;
-    if(st==='connected'){
-      document.getElementById('cl-stat').style.display='none';
-      document.getElementById('cl-time').style.display='block';
-      if(!callTiv)startCallTimer();
-    }
-    if(st==='failed'||st==='disconnected') endCall(false);
+    const qs=document.getElementById('cl-qual');if(qs)qs.textContent=st==='connected'?'● Stabil anslutning':st;
+    if(st==='connected'){document.getElementById('cl-stat').style.display='none';document.getElementById('cl-time').style.display='block';if(!callTiv)startCallTimer();}
+    if(st==='failed'||st==='disconnected')endCall(false);
   };
   return c;
 }
-
 async function startCall(){
-  if(!activeChat)return;
-  callCid=activeChat;
-  try{lStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});}
-  catch(e){alert('Mikrofon ej tillgänglig: '+e.message);return;}
-  pConn=mkPC();
-  lStream.getTracks().forEach(t=>pConn.addTrack(t,lStream));
+  if(!activeChat)return;callCid=activeChat;
+  try{lStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});}
+  catch(e){alert('Mikrofon: '+e.message);return;}
+  pConn=mkPC();lStream.getTracks().forEach(t=>pConn.addTrack(t,lStream));
   const offer=await pConn.createOffer({offerToReceiveAudio:true});
   await pConn.setLocalDescription(offer);
   const key=await sessKey(callCid);
   const en=await encO({type:'WEBRTC_OFFER',sdp:pConn.localDescription,alias:ME.alias},key);
   wsSend({type:'WEBRTC_OFFER',to:callCid,from:ME.id,enc:en});
-  const c=ME.contacts[callCid];
-  showCallView(c?c.alias:'?',avCls(callCid),'Ringer...');
+  const c=ME.contacts[callCid];showCallView(c?c.alias:'?',avCls(callCid),'Ringer...');
 }
-
 async function onCallSig(raw){
-  const key=await sessKey(raw.from);
-  const msg=await decO(raw.enc,key);if(!msg)return;
-  if(msg.type==='WEBRTC_OFFER'){
-    incCall={from:raw.from,sdp:msg.sdp,alias:msg.alias||raw.from.slice(0,8)};
-    document.getElementById('ic-av').textContent=(msg.alias||'?').charAt(0).toUpperCase();
-    document.getElementById('ic-name').textContent=msg.alias||'Okänd';
-    oSh('sh-inc-call');
-  } else if(msg.type==='WEBRTC_ANSWER'&&pConn){
-    try{await pConn.setRemoteDescription(new RTCSessionDescription(msg.sdp));}catch(e){console.warn(e);}
-  } else if(msg.type==='WEBRTC_ICE'&&pConn){
-    try{await pConn.addIceCandidate(new RTCIceCandidate(msg.candidate));}catch{}
-  } else if(msg.type==='CALL_END'){
-    endCall(true);
-  }
+  const key=await sessKey(raw.from);const msg=await decO(raw.enc,key);if(!msg)return;
+  if(msg.type==='WEBRTC_OFFER'){incCall={from:raw.from,sdp:msg.sdp,alias:msg.alias||raw.from.slice(0,8)};document.getElementById('ic-av').textContent=(msg.alias||'?').charAt(0).toUpperCase();document.getElementById('ic-name').textContent=msg.alias||'Okänd';oSh('sh-inc-call');}
+  else if(msg.type==='WEBRTC_ANSWER'&&pConn){try{await pConn.setRemoteDescription(new RTCSessionDescription(msg.sdp));}catch(e){console.warn(e);}}
+  else if(msg.type==='WEBRTC_ICE'&&pConn){try{await pConn.addIceCandidate(new RTCIceCandidate(msg.candidate));}catch{}}
+  else if(msg.type==='CALL_END')endCall(true);
 }
-
 async function acceptCall(){
-  cSh('sh-inc-call');if(!incCall)return;
-  callCid=incCall.from;
-  try{lStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});}
-  catch(e){alert('Mikrofon ej tillgänglig: '+e.message);return;}
-  pConn=mkPC();
-  lStream.getTracks().forEach(t=>pConn.addTrack(t,lStream));
+  cSh('sh-inc-call');if(!incCall)return;callCid=incCall.from;
+  try{lStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});}catch(e){alert('Mikrofon: '+e.message);return;}
+  pConn=mkPC();lStream.getTracks().forEach(t=>pConn.addTrack(t,lStream));
   try{
     await pConn.setRemoteDescription(new RTCSessionDescription(incCall.sdp));
-    const answer=await pConn.createAnswer();
-    await pConn.setLocalDescription(answer);
+    const answer=await pConn.createAnswer();await pConn.setLocalDescription(answer);
     const key=await sessKey(callCid);
     const en=await encO({type:'WEBRTC_ANSWER',sdp:pConn.localDescription},key);
     wsSend({type:'WEBRTC_ANSWER',to:callCid,from:ME.id,enc:en});
     showCallView(incCall.alias,avCls(callCid),'Ansluter...');
-  }catch(e){alert('Anslutningsfel: '+e.message);endCall(false);}
+  }catch(e){alert('Fel: '+e.message);endCall(false);}
   incCall=null;
 }
-
-function rejectCall(){
-  cSh('sh-inc-call');
-  if(incCall){
-    sessKey(incCall.from).then(k=>encO({type:'CALL_END'},k)).then(en=>wsSend({type:'DM',to:incCall.from,from:ME.id,enc:en})).catch(()=>{});
-    incCall=null;
-  }
-}
-
+function rejectCall(){cSh('sh-inc-call');if(incCall){sessKey(incCall.from).then(k=>encO({type:'CALL_END'},k)).then(en=>wsSend({type:'DM',to:incCall.from,from:ME.id,enc:en})).catch(()=>{});incCall=null;}}
 function showCallView(name,cls,status){
   const av=document.getElementById('cl-av');av.className=`call-av ${cls}`;av.textContent=name.charAt(0).toUpperCase();
   document.getElementById('cl-name').textContent=name;
-  document.getElementById('cl-stat').textContent=status;
-  document.getElementById('cl-stat').style.display='block';
-  document.getElementById('cl-time').style.display='none';
-  document.getElementById('cl-qual').textContent='';
+  document.getElementById('cl-stat').textContent=status;document.getElementById('cl-stat').style.display='block';
+  document.getElementById('cl-time').style.display='none';document.getElementById('cl-qual').textContent='';
   showSc('s-call');
 }
-
-function startCallTimer(){
-  callSecs=0;clearInterval(callTiv);
-  callTiv=setInterval(()=>{
-    callSecs++;
-    const m=String(Math.floor(callSecs/60)).padStart(2,'0');
-    const s=String(callSecs%60).padStart(2,'0');
-    const el=document.getElementById('cl-time');if(el)el.textContent=m+':'+s;
-  },1000);
-}
-
+function startCallTimer(){callSecs=0;clearInterval(callTiv);callTiv=setInterval(()=>{callSecs++;const m=String(Math.floor(callSecs/60)).padStart(2,'0');const s=String(callSecs%60).padStart(2,'0');const el=document.getElementById('cl-time');if(el)el.textContent=m+':'+s;},1000);}
 function endCall(remote){
-  if(!remote&&callCid) sessKey(callCid).then(k=>encO({type:'CALL_END'},k)).then(en=>wsSend({type:'DM',to:callCid,from:ME.id,enc:en})).catch(()=>{});
+  if(!remote&&callCid)sessKey(callCid).then(k=>encO({type:'CALL_END'},k)).then(en=>wsSend({type:'DM',to:callCid,from:ME.id,enc:en})).catch(()=>{});
   if(pConn){try{pConn.close();}catch{}pConn=null;}
   if(lStream){lStream.getTracks().forEach(t=>t.stop());lStream=null;}
   clearInterval(callTiv);callTiv=null;callCid=null;isMuted=false;
   const mb=document.getElementById('mut-btn');if(mb){mb.textContent='🎤';mb.style.background='var(--s4)';}
   showSc(activeChat?'s-chat':activeGroup?'s-grp':TABS[_tab]);
 }
-
-function toggleMute(){
-  isMuted=!isMuted;
-  if(lStream)lStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);
-  const btn=document.getElementById('mut-btn');
-  if(btn){btn.textContent=isMuted?'🔇':'🎤';btn.style.background=isMuted?'rgba(255,69,58,.4)':'var(--s4)';}
-}
-function toggleSpk(){
-  const btn=document.getElementById('spk-btn');
-  if(btn){const on=btn.dataset.spk==='1';btn.dataset.spk=on?'0':'1';btn.style.background=on?'var(--s4)':'rgba(45,211,111,.35)';}
-}
+function toggleMute(){isMuted=!isMuted;if(lStream)lStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);const btn=document.getElementById('mut-btn');if(btn){btn.textContent=isMuted?'🔇':'🎤';btn.style.background=isMuted?'rgba(255,69,58,.4)':'var(--s4)';}}
+function toggleSpk(){const btn=document.getElementById('spk-btn');if(btn){const on=btn.dataset.spk==='1';btn.dataset.spk=on?'0':'1';btn.style.background=on?'var(--s4)':'rgba(48,208,104,.3)';}}
 
 // ─── Sheets ─────────────────────────────────────────────────────────
 function oSh(id){document.getElementById(id)?.classList.add('on');}
@@ -1849,37 +1875,55 @@ function cSh(id){document.getElementById(id)?.classList.remove('on');}
 function bgC(e,id){if(e.target===e.currentTarget)cSh(id);}
 
 // ─── Lightbox ────────────────────────────────────────────────────────
-function openLb(src){document.getElementById('lb-img').src=src;document.getElementById('lb').classList.add('on');}
+function openLb(src){
+  document.getElementById('lb-img').src=src;
+  document.getElementById('lb').classList.add('on');
+}
 function closeLb(){document.getElementById('lb').classList.remove('on');}
+// Lightbox close via button AND tap on overlay
+document.addEventListener('DOMContentLoaded',()=>{
+  const lb=document.getElementById('lb');
+  const lbClose=document.getElementById('lb-close');
+  if(lbClose)lbClose.onclick=closeLb;
+  if(lb){
+    lb.addEventListener('click',e=>{if(e.target===lb)closeLb();});
+    lb.addEventListener('touchend',e=>{if(e.target===lb)closeLb();});
+  }
+});
+
+// ─── Screen lock (hide content when app backgrounded) ────────────────
+document.addEventListener('visibilitychange',()=>{
+  const lock=document.getElementById('screen-lock');
+  if(!lock||!ME.started)return;
+  if(document.hidden){lock.classList.add('on');}
+  else{setTimeout(()=>lock.classList.remove('on'),200);}
+});
 
 // ─── PWA ─────────────────────────────────────────────────────────────
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 // ─── Boot ─────────────────────────────────────────────────────────────
 function boot(){
   document.getElementById('ob-alias').value=ME.alias;
   document.getElementById('ob-id').textContent=ME.id;
-
   document.getElementById('ob-btn').onclick=()=>{
     const alias=document.getElementById('ob-alias').value.trim()||rndAlias();
     ME.alias=alias;ME.started=true;save();launch();
   };
-
-  if(ME.started) launch();
+  if(ME.started)launch();
 }
-
 function launch(){
   // Apply saved theme
-  if(ME.accent) document.documentElement.style.setProperty('--acc',ME.accent);
-  if(ME.bgColor){ document.documentElement.style.setProperty('--bg',ME.bgColor); document.body.style.background=ME.bgColor; }
+  if(ME.theme&&ME.theme!=='dark')document.body.className='theme-'+ME.theme;
   document.getElementById('bnav').classList.add('vis');
   updProfUI();
   wsConnect();
-  showSc('s-chats');
-  document.getElementById('s-ob').classList.remove('on');
-  renderChats();renderContacts();
+  showSc('s-chats');document.getElementById('s-ob').classList.remove('on');
+  renderChats();renderContacts();renderNotes();
+  // Swipe back on chat views
+  initSwipeBack('s-chat');initSwipeBack('s-grp');initSwipeBack('s-note-edit');
   // Initiate ECDH for existing contacts
-  Object.keys(ME.contacts).forEach(id=>{ if(!SESS[id]) ecdhInit(id).catch(()=>{}); });
+  Object.keys(ME.contacts).forEach(id=>{if(!SESS[id])ecdhInit(id).catch(()=>{});});
 }
 
 setInterval(()=>{if(ws&&ws.readyState===1)wsSend({type:'PING'});},25000);
