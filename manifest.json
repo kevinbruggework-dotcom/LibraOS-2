@@ -1,15 +1,13 @@
 {
   "name": "LibraOS-4677",
   "short_name": "LibraOS",
-  "description": "E2E krypterad kommunikation — anonym, säker",
+  "description": "E2E krypterad kommunikation",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#0c0c0f",
   "theme_color": "#0c0c0f",
   "orientation": "portrait-primary",
-  "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
-  ],
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }],
   "categories": ["communication"],
   "scope": "/"
 }
